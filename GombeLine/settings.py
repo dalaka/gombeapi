@@ -121,10 +121,10 @@ WSGI_APPLICATION = 'GombeLine.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': "ec2-52-54-200-216.compute-1.amazonaws.com",
-        'NAME': "d9cpp5shpmhkl5", #"irmdb",
-        'USER': "xwpuikxjkraxfl",#"admin",
-        'PASSWORD': "7167e0b75037ab75f96db235ec7dda1acce369c63e0d10608d4b90ef8c0d1c0c",
+        'HOST': "ec2-44-206-204-65.compute-1.amazonaws.com",
+        'NAME': "dbu3gfv5du4cpj", #"irmdb",
+        'USER': "xbkepqsvhuvdau",#"admin",
+        'PASSWORD': "0ff44fa0c7249220d9fdc5c1d3fb963852daccb1512202a547ac0233d736d5bc",
         'CONN_MAX_AGE ': None,
         'PORT': "5432",
     }

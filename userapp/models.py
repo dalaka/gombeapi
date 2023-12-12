@@ -45,7 +45,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def _create_user(self, username, password, **extra_fields):
+    def _create_user(self, username,password, **extra_fields):
         """Create and save a User with the given email and password."""
         if not username:
             raise ValueError('The given username must be set')
@@ -54,7 +54,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, password, **extra_fields):
+    def create_superuser(self, username,password, **extra_fields):
         """Create and save a SuperUser with the given email and password."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
@@ -101,7 +101,7 @@ class User(AbstractUser, PermissionsMixin):
 
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, verbose_name=_("Office Location"))
     department = models.ManyToManyField(Department, verbose_name=_("Department"))
-    email = models.EmailField(max_length=255, verbose_name=_("Email Address"), unique=True)
+    email = models.EmailField(max_length=255, verbose_name=_("Email Address"), unique=False,null=True)
     first_name = models.CharField(max_length=255, verbose_name=_("First Name"))
     last_name = models.CharField(max_length=255, verbose_name=_("Last Name"))
     phone = models.CharField(max_length=255, verbose_name=_("Phone Number"))

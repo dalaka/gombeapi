@@ -134,8 +134,8 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
         return instance
 
 class VehicleSerializer(serializers.ModelSerializer):
-    vehicle_maintenance = MaintenanceSerializer(required=False, source='maintaince_history', many=True)
-    vehicle_repair = VehicleRepairSerializer(required=False, source='repair_history', many=True)
+    vehicle_maintenance = MaintenanceSerializer(required=False, source='maintaince_history', many=True, read_only=True)
+    vehicle_repair = VehicleRepairSerializer(required=False, source='repair_history', many=True, read_only=True)
 
     class Meta:
         model = Vehicle

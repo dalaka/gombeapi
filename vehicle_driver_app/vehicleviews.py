@@ -1,7 +1,9 @@
+from django.db.models import Sum
 from django.shortcuts import render
 from rest_framework import viewsets, status
 
 # Create your views here.
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -50,6 +52,18 @@ class VehicleViews(viewsets.ViewSet):
         stu=Vehicle.objects.get(pk=id)
         stu.delete()
         return Response(response_info(status=status.HTTP_200_OK, msg='Vehicle delete successfully',data=[]))
+
+    @action(detail=False, methods=['GET'])
+    def vehicle_stat(self, request, *args, **kwargs):
+        year = request.query_params.get('year', None)
+        month = request.query_params.get('month', None)
+        # if year != None and month != None:
+        total_repair_cost = VehicleRepair.objects.filter(approval_id__is_approved=True).aggregate(Sum('repair_cost'))[
+            'repair_cost__sum']
+        total_vehicle = Vehicle.objects.all().count()
+        total_repair = VehicleRepair.objects.all().count()
+        data = {"total_repair_cost": total_repair_cost, "total_vehicles": total_vehicle, "total_repairs": total_repair}
+        return Response(response_info(status=status.HTTP_200_OK, msg="vehicle statistics", data=data))
 
 
 class MaintenanceViews(viewsets.ViewSet):
@@ -127,3 +141,5 @@ class RepairViews(viewsets.ViewSet):
         stu=VehicleRepair.objects.get(pk=id)
         stu.delete()
         return Response(response_info(status=status.HTTP_200_OK, msg='repair delete successfully',data=[]))
+
+

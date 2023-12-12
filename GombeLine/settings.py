@@ -25,7 +25,7 @@ environ.Env.read_env(BASE_DIR/ '.env')
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = "django-insecure-*p0hyn6s!)sxte2#2!uux-cra0n_c-r8r-e7r4e-clji%^xfrh" #env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -101,8 +101,9 @@ TEMPLATES = [
         },
     },
 ]
-api_key = env('MJ_APIKEY_PUBLIC')
-api_secret = env('MJ_APIKEY_PRIVATE')
+MJ_APIKEY_PUBLIC="12a07518c6ae820bb2d09fce12e69efb"
+MJ_APIKEY_PRIVATE='9cea81813a5befbb553c46475000fcc8'
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Gombe State Transport System API',
     'DESCRIPTION': '',

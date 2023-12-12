@@ -27,8 +27,8 @@ class CustomPagination(pagination.PageNumberPagination):
 def send_email(subject, to_email,full_name, code,tmpid):
     from mailjet_rest import Client
 
-    api_key = settings.api_key
-    api_secret = settings.api_secret
+    api_key = settings.MJ_APIKEY_PUBLIC
+    api_secret = settings.MJ_APIKEY_PRIVATE
     mailjet = Client(auth=(api_key, api_secret), version='v3.1')
     data = {
         'Messages': [

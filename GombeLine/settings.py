@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'userapp',
     'vehicle_driver_app',
+    'traffic',
 ]
 
 MIDDLEWARE = [
@@ -122,10 +123,10 @@ WSGI_APPLICATION = 'GombeLine.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': "ec2-44-206-204-65.compute-1.amazonaws.com",
-        'NAME': "dbu3gfv5du4cpj", #"irmdb",
-        'USER': "xbkepqsvhuvdau",#"admin",
-        'PASSWORD': "0ff44fa0c7249220d9fdc5c1d3fb963852daccb1512202a547ac0233d736d5bc",
+        'HOST': "ec2-174-129-100-198.compute-1.amazonaws.com",
+        'NAME': "d30pi7sqc1vvrd", #"irmdb",
+        'USER': "vmxbstkpfhbnss",#"admin",
+        'PASSWORD': "089b684e43a8d014aae599b990479beb90b4828aa2a30cdb763fe8236f5de566",
         'CONN_MAX_AGE ': None,
         'PORT': "5432",
     }

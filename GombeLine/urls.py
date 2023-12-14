@@ -33,4 +33,5 @@ urlpatterns = [
     path('item/', include('vehicle_driver_app.itemurls')),
     path('maintenance/', include('vehicle_driver_app.maintenceurls')),
     path('repair/', include('vehicle_driver_app.repairurls')),
+    path('route/', include('traffic.route-url')),
 ]

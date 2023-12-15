@@ -44,13 +44,19 @@ class Driver(models.Model):
     nk_contact = models.CharField(max_length=100,blank=False)
     relationship  = models.CharField(max_length=100,blank=False)
     nk_address = models.CharField(max_length=100,blank=False)
+
     def __str__(self):
         return self.first_name
 
     @property
     def number_trips(self):
+
         logs = DriverLog.objects.filter(driver_id=self.id)
         return len(logs)
+
+    def d_history(self):
+
+        return  DriverLog.objects.filter(driver_id=self)
 
     @property
     def is_license_active(self):
@@ -61,17 +67,12 @@ class Driver(models.Model):
 
 class DriverLog(models.Model):
 
-    modified_at = models.DateTimeField(default=now)
-
-    created_at = models.DateTimeField(default=now)
-    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='log_modified_by', on_delete=models.SET_NULL, null=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='log_created_by', on_delete=models.SET_NULL, null=True)
     driver_id = models.ForeignKey(Driver, related_name='deriver_log',on_delete=models.PROTECT)
     departure = models.CharField(max_length=100,blank=False)
     destination = models.CharField(max_length=100,blank=False)
-    datetime_daparture = models.DateTimeField(default=now)
+    datetime_daparture = models.DateField()
+    is_arrived = models.BooleanField(default=False)
     datetime_destination= models.DateTimeField(default=now)
-    total_number_passengers = models.IntegerField()
 
 class Vehicle(models.Model):
 
@@ -95,6 +96,7 @@ class Vehicle(models.Model):
 
     def maintaince_history(self):
         return  Maintenance.objects.filter(vehicle_id=self)
+
 
 
     def repair_history(self):

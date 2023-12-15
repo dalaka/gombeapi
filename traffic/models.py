@@ -23,12 +23,13 @@ class Route(models.Model):
 class Schedule(models.Model):
 
     route_id = models.ForeignKey(Route, related_name='schedule_route', on_delete=models.PROTECT)
-    name= models.CharField(max_length=50,unique=True)
+    name= models.CharField(max_length=50)
     driver_id = models.ForeignKey(Driver, related_name='driver_sch', on_delete=models.SET_NULL, null=True)
     vehicle_id = models.ForeignKey(Vehicle, related_name='vehicle_sch', on_delete=models.SET_NULL,null=True)
     price=models.FloatField()
     modified_at = models.DateTimeField(default=now)
     seats= models.JSONField()
+    seats_available = models.IntegerField()
     schedule_date = models.DateField()
     created_at = models.DateTimeField(default=now)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='sch_modified_by', on_delete=models.SET_NULL, null=True)
@@ -37,3 +38,10 @@ class Schedule(models.Model):
 
     def __str__(self):
         return  self.name
+
+
+    def driver_detail(self):
+         return self.driver_id
+
+    def vehicle_detail(self):
+         return self.vehicle_id

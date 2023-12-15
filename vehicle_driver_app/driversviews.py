@@ -1,7 +1,9 @@
 from django.shortcuts import render
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
 
 # Create your views here.
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -50,3 +52,16 @@ class DriverViews(viewsets.ViewSet):
         stu=Driver.objects.get(pk=id)
         stu.delete()
         return Response(response_info(status=status.HTTP_200_OK, msg='Vehicle delete successfully',data=[]))
+
+
+    userperam=OpenApiParameter(name='driver_id',description='driver id',required=True,type=int,location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[userperam])
+    @action(detail=False, methods=['GET'])
+    def driver_history(self, request, *args, **kwargs):
+        _id= request.query_params.get('driver_id', None)
+        usr = DriverLog.objects.filter(driver_id=_id)
+
+        res = custom_paginator.paginate_queryset(usr, request)
+        serializer=DriverLogSerializer(res, many=True)
+
+        return custom_paginator.get_paginated_response(serializer.data)

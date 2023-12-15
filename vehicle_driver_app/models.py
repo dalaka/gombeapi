@@ -54,10 +54,6 @@ class Driver(models.Model):
         logs = DriverLog.objects.filter(driver_id=self.id)
         return len(logs)
 
-    def d_history(self):
-
-        return  DriverLog.objects.filter(driver_id=self)
-
     @property
     def is_license_active(self):
         if date.today() < self.expiry_date:

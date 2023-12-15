@@ -185,12 +185,11 @@ class VehicleSerializer(serializers.ModelSerializer):
         return instance
 
 class DriverSerializer(serializers.ModelSerializer):
-    driver_history= DriverLogSerializer(read_only=True,source='d_history', many=True, required=False)
     class Meta:
         model = Driver
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'first_name', 'address',
                  'last_name', 'phone', 'address', 'driver_license','nk_full_name','nk_contact',
-                 'relationship','nk_address','expiry_date', 'number_trips','is_license_active','driver_number','driver_history')
+                 'relationship','nk_address','expiry_date', 'number_trips','is_license_active','driver_number')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},

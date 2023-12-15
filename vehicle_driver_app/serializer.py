@@ -5,13 +5,24 @@ from rest_framework import serializers
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Vehicle, Driver, DriverLog, Maintenance, VehicleRepair, Item, Approval
 
+class ImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Driver
+        fields = ["image"]
+
+    def update(self, instance, validated_data):
+
+        instance.image = validated_data.get('image', instance.image)
+        instance.save()
+        return instance
 
 class DriverLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DriverLog
         fields =('id', 'driver_id', 'departure',
-                 'destination', 'datetime_daparture', 'datetime_destination', 'is_arrived')
+                 'destination', 'datetime_daparture', 'datetime_destination','vehicle_name', 'is_arrived')
 
         extra_kwargs = {'is_arrived': {'read_only': True}}
 
@@ -187,14 +198,15 @@ class VehicleSerializer(serializers.ModelSerializer):
 class DriverSerializer(serializers.ModelSerializer):
     class Meta:
         model = Driver
-        fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'first_name', 'address',
+        fields =('id',  'modified_at', 'created_at','image', 'modified_by', 'created_by', 'first_name', 'address',
                  'last_name', 'phone', 'address', 'driver_license','nk_full_name','nk_contact',
                  'relationship','nk_address','expiry_date', 'number_trips','is_license_active','driver_number')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
                         'is_license_active': {'read_only': True},
-                        'number_trips': {'read_only': True}, 'driver_number': {'read_only': True} }
+                        'number_trips': {'read_only': True}, 'driver_number': {'read_only': True},
+                        'image': {'read_only': True}  }
 
     def create(self, validated_data):
         request = self.context.get('request')

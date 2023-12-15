@@ -1,3 +1,4 @@
+import os
 from datetime import date
 
 from django.db import models
@@ -8,7 +9,8 @@ from django.utils.timezone import now
 from GombeLine import settings
 from userapp.models import BaseModel
 from userapp.utils import generate_activation_code
-
+def upload_to(instance, filename):
+    return os.path.join('image',str(instance.id), filename)
 
 class Item(models.Model):
 
@@ -31,6 +33,7 @@ class Driver(models.Model):
 
     modified_at = models.DateTimeField(default=now)
     created_at = models.DateTimeField(default=now)
+    image = models.ImageField(upload_to=upload_to, blank=True, null=True)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='dr_modified_by', on_delete=models.SET_NULL, null=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='dr_created_by', on_delete=models.SET_NULL, null=True)
     driver_number = models.CharField(max_length=50, null=True)
@@ -42,7 +45,7 @@ class Driver(models.Model):
     expiry_date = models.DateField(blank=False)
     nk_full_name =models.CharField(max_length=100)
     nk_contact = models.CharField(max_length=100,blank=False)
-    relationship  = models.CharField(max_length=100,blank=False)
+    relationship  = models.CharField(max_length=50,blank=False)
     nk_address = models.CharField(max_length=100,blank=False)
 
     def __str__(self):
@@ -66,6 +69,7 @@ class DriverLog(models.Model):
     driver_id = models.ForeignKey(Driver, related_name='deriver_log',on_delete=models.PROTECT)
     departure = models.CharField(max_length=100,blank=False)
     destination = models.CharField(max_length=100,blank=False)
+    vehicle_name = models.CharField(max_length=100, blank=True, null=True)
     datetime_daparture = models.DateField()
     is_arrived = models.BooleanField(default=False)
     datetime_destination= models.DateTimeField(default=now)

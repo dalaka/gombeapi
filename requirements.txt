@@ -1,5 +1,6 @@
 Django
 dj-database-url
+Pillow
 django-cors-headers
 django-environ
 djangorestframework

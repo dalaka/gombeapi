@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from traffic.models import Route, Schedule
 from traffic.utils import gen_seat
+from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import DriverLog
 
 
@@ -89,7 +90,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
         driverid = validated_data.pop('driver_id')
         vehicleid = validated_data.pop('vehicle_id')
         routeid = validated_data.pop('route_id')
-        schedule=Schedule.objects.create(modified_by=user,created_by=user,created_at=now(),modified_at=now(),
+        schedule=Schedule.objects.create(name=generate_activation_code("S"),modified_by=user,created_by=user,created_at=now(),modified_at=now(),
                                        driver_id=driverid,vehicle_id=vehicleid,route_id=routeid,
                                        seats_available=int(vehicleid.sitting_capacity),
                                        seats=gen_seat(int(vehicleid.sitting_capacity)),**validated_data )

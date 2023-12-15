@@ -6,13 +6,16 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from userapp.permission_decorator import response_info
 from userapp.utils import CustomPagination
 from vehicle_driver_app.models import Driver,DriverLog
-from vehicle_driver_app.serializer import DriverSerializer, DriverLogSerializer
+from vehicle_driver_app.serializer import DriverSerializer, DriverLogSerializer, ImageSerializer
+
 custom_paginator=PageNumberPagination()
 class DriverViews(viewsets.ViewSet):
     serializer_class = DriverSerializer
@@ -65,3 +68,22 @@ class DriverViews(viewsets.ViewSet):
         serializer=DriverLogSerializer(res, many=True)
 
         return custom_paginator.get_paginated_response(serializer.data)
+
+
+class UploadImageViews(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes =  (IsAuthenticated,)
+
+    userperam=OpenApiParameter(name='driver_id',description='driver id',required=True,type=int,location=OpenApiParameter.QUERY)
+
+    @extend_schema(parameters=[userperam])
+    def post(self,request,format=None):
+        _id= request.query_params.get('driver_id', None)
+        usr = Driver.objects.get(id=_id)
+
+        serializer = ImageSerializer(instance=usr,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

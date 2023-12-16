@@ -1,9 +1,16 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 
-
+from userapp.models import User
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Vehicle, Driver, DriverLog, Maintenance, VehicleRepair, Item, Approval
+class UserDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id','last_name', 'first_name')
+
+
 
 class ImageSerializer(serializers.ModelSerializer):
 
@@ -60,7 +67,8 @@ class ItemsSerializer(serializers.ModelSerializer):
 class MaintenanceSerializer(serializers.ModelSerializer):
     maintenance_type = ItemsSerializer(many=True, read_only=True)
     item_ids= serializers.JSONField(default=[],write_only=True)
-
+    created_by = UserDetailSerializer(read_only=True)
+    modified_by = UserDetailSerializer(read_only=True)
     class Meta:
         model = Maintenance
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'vehicle_id', 'maintenance_date',
@@ -110,7 +118,8 @@ class MaintenanceSerializer(serializers.ModelSerializer):
         return instance
 
 class VehicleRepairSerializer(serializers.ModelSerializer):
-
+    created_by = UserDetailSerializer(read_only=True)
+    modified_by = UserDetailSerializer(read_only=True)
     class Meta:
         model = VehicleRepair
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'vehicle_id', 'repair_date',
@@ -155,6 +164,8 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
         return instance
 
 class VehicleSerializer(serializers.ModelSerializer):
+    created_by = UserDetailSerializer(read_only=True)
+    modified_by = UserDetailSerializer(read_only=True)
     vehicle_maintenance = MaintenanceSerializer(required=False, source='maintaince_history', many=True, read_only=True)
     vehicle_repair = VehicleRepairSerializer(required=False, source='repair_history', many=True, read_only=True)
 
@@ -198,6 +209,8 @@ class VehicleSerializer(serializers.ModelSerializer):
         return instance
 
 class DriverSerializer(serializers.ModelSerializer):
+    created_by = UserDetailSerializer(read_only=True)
+    modified_by = UserDetailSerializer(read_only=True)
     class Meta:
         model = Driver
         fields =('id',  'modified_at', 'created_at','image', 'modified_by', 'created_by', 'first_name', 'address',

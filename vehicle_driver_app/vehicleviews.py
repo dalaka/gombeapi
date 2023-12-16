@@ -1,5 +1,6 @@
 from django.db.models import Sum
 from django.shortcuts import render
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
 
 # Create your views here.
@@ -84,6 +85,15 @@ class MaintenanceViews(viewsets.ViewSet):
         serializer=MaintenanceSerializer(res, many=True)
         return custom_paginator.get_paginated_response(serializer.data)
 
+    userperam=OpenApiParameter(name='vehicle_id',description='vehicle id',required=True,type=int,location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[userperam])
+    @action(detail=False, methods=['GET'])
+    def maintenance_by_vehicle(self, request, *args, **kwargs):
+        vehicleid=request.query_params.get('vehicle_id')
+        maint = Maintenance.objects.filter(vehicle_id=vehicleid).order_by('created_at')
+        res = custom_paginator.paginate_queryset(maint, request)
+        serializer=MaintenanceSerializer(res, many=True)
+        return custom_paginator.get_paginated_response(serializer.data)
     def retrieve(self, request, pk=None):
         vehicle = get_object_or_404(self.queryset, pk=pk)
         serializer = self.serializer_class(vehicle)
@@ -122,6 +132,15 @@ class RepairViews(viewsets.ViewSet):
         serializer=self.serializer_class(res, many=True)
         return custom_paginator.get_paginated_response(serializer.data)
 
+    userperam=OpenApiParameter(name='vehicle_id',description='vehicle id',required=True,type=int,location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[userperam])
+    @action(detail=False, methods=['GET'])
+    def repair_by_vehicle(self, request, *args, **kwargs):
+        vehicleid=request.query_params.get('vehicle_id')
+        maint = VehicleRepair.objects.filter(vehicle_id=vehicleid).order_by('created_at')
+        res = custom_paginator.paginate_queryset(maint, request)
+        serializer=VehicleRepairSerializer(res, many=True)
+        return custom_paginator.get_paginated_response(serializer.data)
     def retrieve(self, request, pk=None):
         vehicle = get_object_or_404(self.queryset, pk=pk)
         serializer = self.serializer_class(vehicle)

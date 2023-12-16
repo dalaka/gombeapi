@@ -190,6 +190,8 @@ class VehicleSerializer(serializers.ModelSerializer):
         instance.color = validated_data.get('color', instance.color)
         instance.sitting_capacity = validated_data.get('sitting_capacity', instance.sitting_capacity)
         instance.custom_naming = validated_data.get('custom_naming', instance.custom_naming)
+        instance.vehicle_condition = validated_data.get('vehicle_condition', instance.vehicle_condition)
+
         instance.modified_by=user
         instance.modified_at=now()
         instance.save()

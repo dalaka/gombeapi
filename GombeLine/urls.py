@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from GombeLine import settings
+from GombeLine import dev
 
 urlpatterns = [
     path('apidoc/', SpectacularAPIView.as_view(), name='schema'),
@@ -36,5 +36,5 @@ urlpatterns = [
     path('repair/', include('vehicle_driver_app.repairurls')),
     path('route/', include('traffic.route-url')),
     path('schedule/', include('traffic.schedule-urls')),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]+ static(dev.MEDIA_URL, document_root=dev.MEDIA_ROOT)
 

@@ -12,3 +12,9 @@ mailjet-rest
 psycopg2-binary
 pyotp
 whitenoise
+django-extensions
+django_on_heroku
+python-dotenv
+python-decouple
+django-storages
+boto3

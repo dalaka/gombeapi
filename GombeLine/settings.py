@@ -73,7 +73,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=500),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "TOKEN_OBTAIN_SERIALIZER": "userapp.serializer.MyTokenObtainPairSerializer",
+    #"TOKEN_OBTAIN_SERIALIZER": "userapp.serializer.MyTokenObtainPairSerializer",
 
 }
 ROOT_URLCONF = 'GombeLine.urls'

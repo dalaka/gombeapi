@@ -1,6 +1,8 @@
+from django.db.models import Q
 from django.shortcuts import render
 
 # Create your views here.
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
@@ -25,9 +27,16 @@ class RouteViews(viewsets.ViewSet):
             return Response(response_info(status=status.HTTP_201_CREATED, msg="route created successfully", data=serializer.data))
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def list(self, request):
-
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+    vperam = OpenApiParameter(name='search', description='search vehicle', required=False, type=str,
+                              location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[vperam])
+    def list(self, request, *args, **kwargs):
+        search = request.query_params.get('search', None)
+        if search != None:
+            all_route = Route.objects.filter(Q(name__contains=search)|Q(source__icontains=search)|Q(dest__icontains=search))
+        else:
+            all_route = self.queryset
+        res = custom_paginator.paginate_queryset(all_route, request)
         serializer=RouteSerializer(res, many=True)
         return custom_paginator.get_paginated_response(serializer.data)
 

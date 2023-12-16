@@ -3,12 +3,20 @@ from rest_framework import serializers
 
 from traffic.models import Route, Schedule
 from traffic.utils import gen_seat
+from userapp.models import User
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import DriverLog
 
+class UserTrafficSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id','last_name', 'first_name')
+
 
 class RouteSerializer(serializers.ModelSerializer):
-
+    created_by = UserTrafficSerializer(read_only=True)
+    modified_by = UserTrafficSerializer(read_only=True)
     class Meta:
         model = Route
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'name', 'source','dest')
@@ -57,6 +65,8 @@ class DriverDetailSerializer(serializers.ModelSerializer):
                  'relationship','nk_address','expiry_date', 'number_trips','is_license_active','driver_number')
 
 class ScheduleSerializer(serializers.ModelSerializer):
+    created_by = UserTrafficSerializer(read_only=True)
+    modified_by = UserTrafficSerializer(read_only=True)
     driver = DriverDetailSerializer(read_only=True,source='driver_detail', required=False)
 
     vehicle = VehicleDetailSerializer(required=False, source='vehicle_detail',read_only=True)

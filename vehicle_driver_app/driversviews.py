@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
@@ -28,10 +29,17 @@ class DriverViews(viewsets.ViewSet):
             serializer.save()
             return Response({'msg': '', 'data':serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def list(self, request):
-
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+    vperam = OpenApiParameter(name='search', description='search vehicle', required=False, type=str,
+                              location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[vperam])
+    def list(self, request, *args, **kwargs):
+        search = request.query_params.get('search', None)
+        if search !=None:
+            all_dr = Driver.objects.filter(Q(driver_number__icontains=search)|Q(phone__icontains=search)
+                                           |Q(first_name__icontains=search)|Q(last_name__icontains=search))
+        else:
+            all_dr =self.queryset
+        res = custom_paginator.paginate_queryset(all_dr, request)
         serializer=DriverSerializer(res, many=True)
 
 

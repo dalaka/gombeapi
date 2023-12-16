@@ -11,6 +11,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.settings import api_settings
 
 from userapp.models import Location, Department, User, OTP
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -36,14 +37,7 @@ def get_perm(user):
             res.append({"department": i.name, "permissions":rst.data})
     return res
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        # Add custom claims
-        token['role'] = get_perm(user)
 
-        return token
 class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:

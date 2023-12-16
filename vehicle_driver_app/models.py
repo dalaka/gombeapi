@@ -126,6 +126,10 @@ class Maintenance(models.Model):
     approval_id = models.ForeignKey(Approval, related_name='approval_maintenance', on_delete=models.CASCADE, null=True)
 
 
+    def vehicle_d(self):
+        return self.vehicle_id
+
+
 
 class VehicleRepair(models.Model):
     repair_code = models.CharField(max_length=50, null=True)
@@ -138,6 +142,9 @@ class VehicleRepair(models.Model):
     repair_descriptions = models.CharField(max_length=250,blank=False)
     repair_cost = models.FloatField()
     approval_id = models.ForeignKey(Approval, related_name='approval_repair',on_delete=models.PROTECT,null=True)
+
+    def vehicle_d(self):
+        return self.vehicle_id
 
 
 

@@ -4,6 +4,15 @@ from rest_framework import serializers
 from userapp.models import User
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Vehicle, Driver, DriverLog, Maintenance, VehicleRepair, Item, Approval
+
+class VehicleDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Vehicle
+        fields =('id', 'vehicle_make', 'vehicle_model',
+                 'vin', 'reg_number', 'vehicle_type', 'color','sitting_capacity','custom_naming','vehicle_condition',
+                 'is_available')
+
 class UserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -69,10 +78,12 @@ class MaintenanceSerializer(serializers.ModelSerializer):
     item_ids= serializers.JSONField(default=[],write_only=True)
     created_by = UserDetailSerializer(read_only=True)
     modified_by = UserDetailSerializer(read_only=True)
+    vehicle_detail = VehicleDetailSerializer(read_only=True,source='vehicle_d')
+
     class Meta:
         model = Maintenance
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'vehicle_id', 'maintenance_date',
-                 'due_date', 'maintenance_type', 'maintenance_cost', 'maintenance_code','item_ids')
+                 'due_date', 'maintenance_type', 'maintenance_cost', 'maintenance_code','item_ids','vehicle_detail')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
@@ -120,10 +131,11 @@ class MaintenanceSerializer(serializers.ModelSerializer):
 class VehicleRepairSerializer(serializers.ModelSerializer):
     created_by = UserDetailSerializer(read_only=True)
     modified_by = UserDetailSerializer(read_only=True)
+    vehicle_detail = VehicleDetailSerializer(read_only=True,source='vehicle_d')
     class Meta:
         model = VehicleRepair
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'vehicle_id', 'repair_date',
-                 'repair_descriptions', 'repair_cost', 'repair_code')
+                 'repair_descriptions', 'repair_cost', 'repair_code','vehicle_detail')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
@@ -166,17 +178,16 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
 class VehicleSerializer(serializers.ModelSerializer):
     created_by = UserDetailSerializer(read_only=True)
     modified_by = UserDetailSerializer(read_only=True)
-    vehicle_maintenance = MaintenanceSerializer(required=False, source='maintaince_history', many=True, read_only=True)
-    vehicle_repair = VehicleRepairSerializer(required=False, source='repair_history', many=True, read_only=True)
+    #vehicle_maintenance = MaintenanceSerializer(required=False, source='maintaince_history', many=True, read_only=True)
+    #vehicle_repair = VehicleRepairSerializer(required=False, source='repair_history', many=True, read_only=True)
 
     class Meta:
         model = Vehicle
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'vehicle_make', 'vehicle_model',
-                 'vin', 'reg_number', 'vehicle_type', 'color','sitting_capacity','custom_naming','vehicle_maintenance',
-                 'vehicle_repair','vehicle_condition','is_available')
+                 'vin', 'reg_number', 'vehicle_type', 'color','sitting_capacity','custom_naming','vehicle_condition',
+                 'is_available')
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
-                        'vehicle_maintenance': {'read_only': True}, 'vehicle_repair': {'read_only': True},
                         'is_available': {'read_only': True}
                         }
 

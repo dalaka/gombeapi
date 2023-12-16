@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.shortcuts import render
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
@@ -29,9 +29,15 @@ class VehicleViews(viewsets.ViewSet):
             return Response({'msg': 'Data  created', 'data':serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    vperam=OpenApiParameter(name='search',description='search vehicle',required=False,type=str,location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[vperam])
     def list(self, request, *args, **kwargs):
-
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+        search = request.query_params.get('search', None)
+        if search != None:
+            get_allv = Vehicle.objects.filter(Q(custom_naming__icontains=search) | Q(reg_number__icontains=search))
+        else:
+            get_allv = self.queryset
+        res = custom_paginator.paginate_queryset(get_allv, request)
         serializer=VehicleSerializer(res, many=True)
         return custom_paginator.get_paginated_response(serializer.data)
 
@@ -78,6 +84,7 @@ class MaintenanceViews(viewsets.ViewSet):
             serializer.save()
             return Response(response_info(status=status.HTTP_201_CREATED, msg="maintenance detail", data=serializer.data))
         return Response(response_info(status=status.HTTP_400_BAD_REQUEST, msg="error", data=serializer.data))
+
 
     def list(self, request, *args, **kwargs):
 

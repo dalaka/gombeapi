@@ -20,6 +20,10 @@ class Route(models.Model):
     def __str__(self):
         return  self.name
 
+    def to_g(self):
+        return Schedule.objects.filter(route_id=self)
+
+
 class Schedule(models.Model):
 
     route_id = models.ForeignKey(Route, related_name='schedule_route', on_delete=models.PROTECT)
@@ -45,3 +49,6 @@ class Schedule(models.Model):
 
     def vehicle_detail(self):
          return self.vehicle_id
+
+    def route_d(self):
+         return self.route_id

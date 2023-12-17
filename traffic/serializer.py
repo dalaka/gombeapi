@@ -7,6 +7,14 @@ from userapp.models import User
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import DriverLog
 
+class RouteDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Route
+        fields =('id',  'name', 'source','dest')
+
+
+
 class UserTrafficSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -15,6 +23,8 @@ class UserTrafficSerializer(serializers.ModelSerializer):
 
 
 class RouteSerializer(serializers.ModelSerializer):
+    #driver = ScheduleSerializer(read_only=True,source='from_g', required=False)
+
     created_by = UserTrafficSerializer(read_only=True)
     modified_by = UserTrafficSerializer(read_only=True)
     class Meta:
@@ -68,13 +78,13 @@ class ScheduleSerializer(serializers.ModelSerializer):
     created_by = UserTrafficSerializer(read_only=True)
     modified_by = UserTrafficSerializer(read_only=True)
     driver = DriverDetailSerializer(read_only=True,source='driver_detail', required=False)
-
+    route_detail = RouteDetailSerializer(read_only=True,source='route_d')
     vehicle = VehicleDetailSerializer(required=False, source='vehicle_detail',read_only=True)
 
     class Meta:
         model = Schedule
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'name', 'route_id','driver_id',
-                 'price', 'seats', 'schedule_date', 'seats_available', 'vehicle_id','driver', 'vehicle')
+                 'price', 'seats', 'schedule_date', 'seats_available', 'vehicle_id','driver', 'vehicle','route_detail')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},

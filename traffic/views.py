@@ -4,6 +4,7 @@ from django.shortcuts import render
 # Create your views here.
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +12,7 @@ from rest_framework.response import Response
 
 from traffic.models import Route, Schedule
 from traffic.serializer import RouteSerializer, ScheduleSerializer
+from traffic.utils import grouped_schedule
 from userapp.permission_decorator import response_info
 
 custom_paginator=PageNumberPagination()
@@ -76,9 +78,52 @@ class ScheduleViews(viewsets.ViewSet):
     def list(self, request):
 
         res = custom_paginator.paginate_queryset(self.queryset, request)
+
         serializer=ScheduleSerializer(res, many=True)
+
+
+
+
         return custom_paginator.get_paginated_response(serializer.data)
 
+
+    vperam=OpenApiParameter(name='schedule_date',description='Schedule date',required=False,type=str,location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[vperam])
+    @action(detail=False, methods=['GET'])
+    def schedule_out_list(self, request):
+        schedule_date = request.query_params.get('schedule_date')
+        if schedule_date !=None:
+            s_query=Schedule.objects.filter(Q(route_id__source__icontains='Gombe') &
+                                            Q(schedule_date__exact=schedule_date) ).order_by('created_at')
+
+        else:
+            s_query=Schedule.objects.filter(route_id__source='Gombe').order_by('created_at')
+
+        res = custom_paginator.paginate_queryset(s_query, request)
+
+        serializer = ScheduleSerializer(res, many=True)
+
+        return custom_paginator.get_paginated_response(grouped_schedule(serializer.data))
+
+    vperam = OpenApiParameter(name='schedule_date', description='Schedule date', required=False, type=str,
+                              location=OpenApiParameter.QUERY)
+
+    @extend_schema(parameters=[vperam])
+    @action(detail=False, methods=['GET'])
+    def schedule_in_list(self, request):
+        schedule_date = request.query_params.get('schedule_date')
+        if schedule_date != None:
+            s_query = Schedule.objects.filter(
+                Q(route_id__dest__icontains='Gombe') & Q(schedule_date__exact=schedule_date)).order_by('created_at')
+
+        else:
+            s_query = Schedule.objects.filter(route_id__dest='Gombe').order_by('created_at')
+
+        res = custom_paginator.paginate_queryset(s_query, request)
+
+        serializer = ScheduleSerializer(res, many=True)
+
+        return custom_paginator.get_paginated_response(grouped_schedule(serializer.data))
     def retrieve(self, request, pk=None):
         vehicle = get_object_or_404(self.queryset, pk=pk)
         serializer = ScheduleSerializer(vehicle)

@@ -125,6 +125,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
         instance.driver_id = validated_data.get('driver_id', instance.driver_id)
         instance.vehicle_id = validated_data.get('vehicle_id', instance.vehicle_id)
         instance.price = validated_data.get('price', instance.price)
+        instance.schedule_date = validated_data.get('schedule_date', instance.schedule_date)
         instance.modified_by=user
         instance.modified_at=now()
         instance.save()

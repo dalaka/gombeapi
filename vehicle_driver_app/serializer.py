@@ -170,7 +170,7 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user=request.user
         instance.repair_cost = validated_data.get('repair_cost', instance.repair_cost)
-        instance.repair_description = validated_data.get('repair_descriptions', instance.repair_descriptions)
+        instance.repair_descriptions = validated_data.get('repair_descriptions', instance.repair_descriptions)
         instance.repair_date= validated_data.get('repair_date', instance.repair_date)
         instance.modified_by=user
         instance.modified_at=now()

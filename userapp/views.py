@@ -168,6 +168,7 @@ class UserView(viewsets.ModelViewSet):
         user_object.first_name = request.data.get("first_name", user_object.first_name)
         user_object.last_name = request.data.get("last_name",user_object.last_name)
         user_object.is_active =request.data.get("is_active",user_object.is_active)
+        user_object.is_active =request.data.get("phone",user_object.phone)
         user_object.modified_at = now()
         user_object.save()
         user_object.location = Location.objects.get(id=request.data["location"])

@@ -1,4 +1,6 @@
+from django.db.models import Q
 from django.shortcuts import render
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
 
 # Create your views here.
@@ -25,9 +27,15 @@ class ItemViews(viewsets.ViewSet):
             return Response({'msg': '', 'data':serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    vperam=OpenApiParameter(name='search',description='search Item',required=False,type=str,location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[vperam])
     def list(self, request):
-
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+        search = request.query_params.get('search')
+        if search !=None:
+            i_query = Item.objects.filter(Q(name__icontains=search)).order_by('created_at')
+        else:
+            i_query =self.queryset
+        res = custom_paginator.paginate_queryset(i_query, request)
         serializer=ItemsSerializer(res, many=True)
         return custom_paginator.get_paginated_response(serializer.data)
 

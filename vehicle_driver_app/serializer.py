@@ -120,11 +120,13 @@ class MaintenanceSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user=request.user
         instance.maintenance_cost = validated_data.get('maintenance_cost', instance.maintenance_cost)
-        instance.maintenance_type = validated_data.get('maintenance_type', instance.maintenance_type)
         instance.maintenance_date= validated_data.get('maintenance_date', instance.maintenance_date)
         instance.due_date = validated_data.get('due_date', instance.due_date)
         instance.modified_by=user
         instance.modified_at=now()
+        instance.maintenance_type.clear()
+        for i in request.data["item_ids"]:
+            instance.maintenance_type.add(i)
         instance.save()
         return instance
 

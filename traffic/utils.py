@@ -9,7 +9,7 @@ def grouped_schedule(data):
     for result in data:
         group_data[result["route_detail"]['name']].append({'id':result["id"],'seats':result["seats"], 'vehicle':result['vehicle'],
                         'driver':result['driver'], 'schedule_date': result['schedule_date'],
-                            'destination':result['route_detail']['dest'],'price': result['price']})
+                            'route':result['route_detail'],'price': result['price']})
 
     return group_data
 

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'userapp',
     'vehicle_driver_app',
     'traffic',
+    'booking_accounting',
 ]
 
 MIDDLEWARE = [

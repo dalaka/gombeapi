@@ -36,5 +36,6 @@ urlpatterns = [
     path('repair/', include('vehicle_driver_app.repairurls')),
     path('route/', include('traffic.route-url')),
     path('schedule/', include('traffic.schedule-urls')),
+    path('booking/', include('booking_accounting.booking-urls')),
 ]+ static(dev.MEDIA_URL, document_root=dev.MEDIA_ROOT)
 

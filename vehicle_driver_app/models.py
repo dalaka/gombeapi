@@ -111,6 +111,8 @@ class Approval(models.Model):
     approval_type = models.CharField(max_length=250,blank=False)
     is_approved= models.BooleanField(default=False)
     approved_by = models.CharField(max_length=250,blank=False)
+    def __str__(self):
+        return self.approval_code
 
 class Maintenance(models.Model):
     maintenance_code = models.CharField(max_length=50, null=True)
@@ -125,6 +127,8 @@ class Maintenance(models.Model):
     maintenance_cost = models.FloatField()
     approval_id = models.ForeignKey(Approval, related_name='approval_maintenance', on_delete=models.CASCADE, null=True)
 
+    def __str__(self):
+        return self.maintenance_code
 
     def vehicle_d(self):
         return self.vehicle_id
@@ -142,6 +146,10 @@ class VehicleRepair(models.Model):
     repair_descriptions = models.CharField(max_length=250,blank=False)
     repair_cost = models.FloatField()
     approval_id = models.ForeignKey(Approval, related_name='approval_repair',on_delete=models.PROTECT,null=True)
+
+
+    def __str__(self):
+        return self.repair_code
 
     def vehicle_d(self):
         return self.vehicle_id

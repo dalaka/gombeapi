@@ -99,7 +99,9 @@ class BookingViews(viewsets.ViewSet):
             price=Sum('price')).filter(booking_date=bk_date)
         top_buses=Booking.objects.values('schedule_id__vehicle_id__custom_naming').annotate(
             price=Sum('price')).filter(booking_date=bk_date)
-        res ={'total_destination':total_des,'total_revenue':total_rev,'top_route':top_route,'top_buses':top_buses}
+        res ={'total_destination':total_des,'total_revenue':total_rev,'total_bookings':s_query.count(),
+              'top_route':top_route,'top_buses':top_buses
+              }
 
         return Response(response_info(status=status.HTTP_200_OK,msg="Booking statistics",data=res))
 

@@ -107,12 +107,12 @@ class BookingChangeViews(viewsets.ViewSet):
         serializer_class = BookingChangeSerializer
         permission_classes = (IsAuthenticated,)
         queryset = Booking.objects.all().order_by('created_at')
-        oldperm = OpenApiParameter(name='old_schedule_id', description='Old Schedule Id', required=True, type=int,
+        oldperm = OpenApiParameter(name='schedule_id', description='Schedule Id', required=True, type=int,
                                    location=OpenApiParameter.QUERY)
 
         @extend_schema(parameters=[oldperm])
         def update(self, request,pk=None):
-            sch_id = request.query_params.get('old_schedule_id')
+            sch_id = request.query_params.get('schedule_id')
             booking = get_object_or_404(self.queryset, pk=pk)
             sch = Schedule.objects.get(id=sch_id)
             if booking.expired ==True:
@@ -120,7 +120,7 @@ class BookingChangeViews(viewsets.ViewSet):
             if Booking.objects.filter(schedule_id_id=sch_id, seat_no=request.data['seat_no']).exists():
                 return Response(response_info(status=status.HTTP_400_BAD_REQUEST, msg="Seat already taken", data=[]))
             old_sch = Schedule.objects.get(id=booking.schedule_id.id)
-            reset_bus_util(old_sch,request.data['seat_no'])
+            reset_bus_util(old_sch,booking.seat_no)
             serializer = BookingChangeSerializer(booking,request.data,context={'request':request,'obj': sch, 'old':old_sch})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()

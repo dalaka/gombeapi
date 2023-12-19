@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from booking_accounting.models import Booking, Transaction
 from traffic.models import Schedule
-from traffic.serializer import UserTrafficSerializer
+from traffic.serializer import UserTrafficSerializer, ScheduleSerializer
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Approval
 
@@ -15,6 +15,31 @@ def transction(user,orderid,price,des,paymet_method,trnx_method):
                                trans_method=trnx_method)
     return True
 
+class VehicleDetailSerializer(serializers.ModelSerializer):
+
+
+
+    class Meta:
+        from vehicle_driver_app.models import Vehicle
+        model = Vehicle
+        fields =('id','vehicle_make', 'vehicle_model','vin', 'reg_number', 'vehicle_type', 'color','sitting_capacity',
+                 'custom_naming','vehicle_condition','is_available')
+class DriverDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        from vehicle_driver_app.models import  Driver
+        model = Driver
+        fields =('id', 'first_name', 'address','last_name', 'phone', 'address', 'driver_license','nk_full_name','nk_contact',
+                 'relationship','nk_address','expiry_date', 'number_trips','is_license_active','driver_number')
+
+class ScheduleDetailSerializer(serializers.ModelSerializer):
+
+    driver = DriverDetailSerializer(read_only=True,source='driver_detail', required=False)
+    vehicle = VehicleDetailSerializer(required=False, source='vehicle_detail',read_only=True)
+
+    class Meta:
+        model = Schedule
+        fields =( 'driver', 'vehicle')
 
 class BookingChangeSerializer(serializers.ModelSerializer):
     route_changed = serializers.BooleanField(write_only=True)
@@ -36,7 +61,7 @@ class BookingChangeSerializer(serializers.ModelSerializer):
                         'nk_contact': {'read_only': True}, 'relationship': {'read_only': True},
                         'expired': {'read_only': True}, 'balance': {'read_only': True},
                         'amount_paid': {'read_only': True},'payment_method': {'read_only': True},
-                       }
+                       'schedule_id': {'read_only': True}}
 
     def validate(self, attrs):
         return super().validate(attrs)
@@ -82,7 +107,7 @@ class BookingChangeSerializer(serializers.ModelSerializer):
 
 
 class BookingSerializer(serializers.ModelSerializer):
-    #driver = ScheduleSerializer(read_only=True,source='from_g', required=False)
+    schedule_detail = ScheduleDetailSerializer(read_only=True,source='s_detail', required=False)
 
     created_by = UserTrafficSerializer(read_only=True)
     modified_by = UserTrafficSerializer(read_only=True)
@@ -90,14 +115,15 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'passenger_full_name', 'booking_code',
                  'seat_no','passenger_phone','nk_full_name','nk_contact','relationship','schedule_id', 'price',
-                 'payment_status','payment_method','destination', 'expired', 'balance', 'amount_paid')
+                 'payment_status','payment_method','destination', 'expired', 'balance', 'amount_paid', 'schedule_detail')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
                         'booking_code': {'read_only': True},
                         'price': {'read_only': True},'payment_status': {'read_only': True},
                         'destination': {'read_only': True},'expired': {'read_only': True},
-                        'balance': {'read_only': True}, 'amount_paid': {'read_only': True}
+                        'balance': {'read_only': True}, 'amount_paid': {'read_only': True},
+                        'schedule_detail': {'read_only': True}
                        }
 
     def validate(self, attrs):

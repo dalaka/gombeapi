@@ -31,6 +31,10 @@ class Booking(models.Model):
 
     def __str__(self):
         return self.booking_code
+
+    def s_detail(self):
+        return self.schedule_id
+
     @property
     def balance(self):
         return self.price - self.amount_paid

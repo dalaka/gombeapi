@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 
 # Create your models here.
@@ -13,11 +15,12 @@ class Booking(models.Model):
     seat_no = models.IntegerField()
     passenger_phone = models.CharField(max_length=30)
     nk_full_name = models.CharField(max_length=50)
+    destination = models.CharField(max_length=50)
     nk_contact= models.CharField(max_length=50)
     relationship= models.CharField(max_length=50)
     schedule_id = models.ForeignKey(Schedule, related_name='booking_schedule',on_delete=models.PROTECT,blank=False)
+    amount_paid = models.FloatField(default=0.0)
     price = models.FloatField(default=0.0)
-    payment_status = models.CharField(max_length=50)
     payment_method = models.CharField(max_length=50)
     booking_date = models.DateField(blank=True, null=True)
     modified_at = models.DateTimeField(default=now)
@@ -28,7 +31,24 @@ class Booking(models.Model):
 
     def __str__(self):
         return self.booking_code
-
+    @property
+    def balance(self):
+        return self.price - self.amount_paid
+    @property
+    def expired(self):
+        if  self.booking_date < date.today():
+            return True
+        else:
+            return False
+    @property
+    def payment_status(self):
+        if  self.amount_paid > 0 and self.price >0:
+            if self.amount_paid == self.price:
+                return 'Paid'
+            else:
+                return 'Not-Paid'
+        else:
+            return 'Not-Paid'
 class LoadingBooking(models.Model):
     loading_code = models.CharField(max_length=20)
     plate_number = models.CharField(max_length=20)

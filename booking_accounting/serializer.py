@@ -5,6 +5,8 @@ from booking_accounting.models import Booking, Transaction
 from traffic.models import Schedule
 from traffic.serializer import UserTrafficSerializer
 from userapp.utils import generate_activation_code
+from vehicle_driver_app.models import Approval
+
 
 def transction(user,orderid,price,des,paymet_method,trnx_method):
     Transaction.objects.create(transactionId=generate_activation_code('T'),created_at=now(),modified_at=now(),
@@ -12,6 +14,73 @@ def transction(user,orderid,price,des,paymet_method,trnx_method):
                                orderId=orderid,amount_paid=price,description=des,payment_method=paymet_method,
                                trans_method=trnx_method)
     return True
+
+
+class BookingChangeSerializer(serializers.ModelSerializer):
+    route_changed = serializers.BooleanField(write_only=True)
+
+    created_by = UserTrafficSerializer(read_only=True)
+    modified_by = UserTrafficSerializer(read_only=True)
+    class Meta:
+        model = Booking
+        fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'passenger_full_name', 'booking_code',
+                 'seat_no','passenger_phone','nk_full_name','nk_contact','relationship','schedule_id', 'price',
+                 'payment_status','payment_method','destination', 'expired','amount_paid','route_changed')
+
+        extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
+                        'modified_by': {'read_only': True},'created_by': {'read_only': True},
+                        'booking_code': {'read_only': True},
+                        'price': {'read_only': True},'payment_status': {'read_only': True},
+                        'destination': {'read_only': True}, 'passenger_full_name': {'read_only': True},
+                        'passenger_phone': {'read_only': True}, 'nk_full_name': {'read_only': True},
+                        'nk_contact': {'read_only': True}, 'relationship': {'read_only': True},
+                        'expired': {'read_only': True}, 'balance': {'read_only': True},
+                        'amount_paid': {'read_only': True},'payment_method': {'read_only': True},
+                       }
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+
+
+    def update(self, instance,validated_data):
+        request = self.context.get('request')
+        sch_obj = self.context.get('obj')
+        old_sch = self.context.get('old')
+        route_changed = validated_data.pop('route_changed')
+        seats=sch_obj.seats
+        no=sch_obj.seats_available
+        seat_no=validated_data.pop('seat_no')
+        #print(sch_obj)
+        user=request.user
+        for s in seats:
+            #print(s)
+            if s['seat_number'] == seat_no and s['is_available'] == True:
+                s['is_available'] = False
+
+        sch_obj.seats = seats
+        sch_obj.seats_available = no - 1
+        sch_obj.save()
+        approve=Approval.objects.create(approval_code=generate_activation_code("AR"),
+                                        approval_type=f"Bus Changed from {old_sch.vehicle_id.custom_naming} to "
+                                                      f"{sch_obj.vehicle_id.custom_naming} ",modified_by=user,
+                                        created_by=user,created_at=now(),modified_at=now())
+        if route_changed:
+            instance.seat_no=seat_no
+            instance.price = sch_obj.price
+            instance.schedule_id = sch_obj
+            instance.modified_by = user
+            instance.modified_at = now()
+            instance.save()
+            return instance
+        else:
+            instance.seat_no=seat_no
+            instance.schedule_id = sch_obj
+            instance.modified_by = user
+            instance.modified_at = now()
+            instance.save()
+            return instance
+
+
 class BookingSerializer(serializers.ModelSerializer):
     #driver = ScheduleSerializer(read_only=True,source='from_g', required=False)
 
@@ -21,51 +90,57 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'passenger_full_name', 'booking_code',
                  'seat_no','passenger_phone','nk_full_name','nk_contact','relationship','schedule_id', 'price',
-                 'payment_status','payment_method')
+                 'payment_status','payment_method','destination', 'expired', 'balance', 'amount_paid')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
                         'booking_code': {'read_only': True},
-                        'price': {'read_only': True},'payment_status': {'read_only': True}
+                        'price': {'read_only': True},'payment_status': {'read_only': True},
+                        'destination': {'read_only': True},'expired': {'read_only': True},
+                        'balance': {'read_only': True}, 'amount_paid': {'read_only': True}
                        }
 
     def validate(self, attrs):
         return super().validate(attrs)
 
-
-    def create(self, validated_data,):
+    def create(self, validated_data):
         request = self.context.get('request')
         sch_obj = self.context.get('obj')
         seat_no = validated_data.get('seat_no')
-        seats=sch_obj.seats
-        no=sch_obj.seats_available
-        #print(sch_obj)
+        seats = sch_obj.seats
+        no = sch_obj.seats_available
+        # print(sch_obj)
 
-
-        user=request.user
-        name=generate_activation_code("GBN")
-        booking=Booking.objects.create(price=sch_obj.price,payment_status='paid',booking_date=sch_obj.schedule_date,
-                                       booking_code=name,
-                                       modified_by=user,created_by=user,created_at=now(),modified_at=now(),
-                                       **validated_data )
+        user = request.user
+        name = generate_activation_code("GBN")
+        booking = Booking.objects.create(price=sch_obj.price,amount_paid=sch_obj.price, booking_date=sch_obj.schedule_date,
+                                         booking_code=name, destination=sch_obj.route_id.dest,
+                                         modified_by=user, created_by=user, created_at=now(), modified_at=now(),
+                                         **validated_data)
         for s in seats:
-            #print(s)
+            # print(s)
             if s['seat_number'] == seat_no and s['is_available'] == True:
                 s['is_available'] = False
 
         sch_obj.seats = seats
         sch_obj.seats_available = no - 1
         sch_obj.save()
-        transction(user=user,orderid=booking.booking_code,price=booking.price,des='Booking',
-                   paymet_method=booking.payment_method,trnx_method='Credit')
+        transction(user=user, orderid=booking.booking_code, price=booking.price, des='Booking',
+                   paymet_method=booking.payment_method, trnx_method='Credit')
         return booking
+
     def update(self, instance, validated_data):
         request = self.context.get('request')
         user=request.user
-        instance.name = f"{validated_data.get('source', instance.source)}-{validated_data.get('dest', instance.dest)}"
-        instance.source = validated_data.get('source', instance.source)
-        instance.dest = validated_data.get('dest', instance.dest)
+        instance.passenger_full_name = validated_data.get('passenger_full_name', instance.passenger_full_name)
+        instance.passenger_phone = validated_data.get('passenger_phone', instance.passenger_phone)
+        instance.nk_full_name = validated_data.get('nk_full_name', instance.nk_full_name)
+        instance.nk_contact = validated_data.get('nk_contact', instance.nk_contact)
+        instance.relationship = validated_data.get('relationship', instance.relationship)
         instance.modified_by=user
         instance.modified_at=now()
         instance.save()
         return instance
+
+
+

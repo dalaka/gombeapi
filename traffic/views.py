@@ -143,3 +143,5 @@ class ScheduleViews(viewsets.ViewSet):
         stu=Schedule.objects.get(pk=id)
         stu.delete()
         return Response(response_info(status=status.HTTP_200_OK, msg='schedule delete successfully',data=[]))
+
+

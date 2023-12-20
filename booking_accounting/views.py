@@ -117,6 +117,27 @@ class BookingViews(viewsets.ViewSet):
 
         return Response(response_info(status=status.HTTP_200_OK,msg="Booking payment",data=res))
 
+    mperam = OpenApiParameter(name='schedule_date', description='Schedule date', required=True, type=str,
+                              location=OpenApiParameter.QUERY)
+    mperam1 = OpenApiParameter(name='schedule_id', description='Schedule id', required=True, type=int,
+                               location=OpenApiParameter.QUERY)
+
+    @extend_schema(parameters=[mperam, mperam1])
+    @action(detail=False, methods=['GET'])
+    def genrate_travel_manifest(self, request):
+        schedule_date = request.query_params.get('schedule_date', None)
+        schedule_id = request.query_params.get('schedule_id', None)
+
+        if schedule_date != None and schedule_id !=None:
+            s_query = Booking.objects.filter(schedule_id_id=schedule_id, booking_date=schedule_date).order_by('created_at')
+            expected_amount=s_query.aggregate(Sum('price'))['price__sum']
+            collected_amount = s_query.aggregate(Sum('amount_paid'))['amount_paid__sum']
+            serilizer=BookingSerializer(s_query,many=True)
+            data={"total_passengers":s_query.count(),"expected_amount":expected_amount,
+                  "collected_amount":collected_amount, "passengers":serilizer.data}
+
+            return Response(response_info(status=status.HTTP_200_OK, msg="manifest", data=data))
+
 class BookingPaymentViews(viewsets.ViewSet):
     serializer_class = BookingPaymentSerializer
     permission_classes = (IsAuthenticated,)

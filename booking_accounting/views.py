@@ -117,6 +117,18 @@ class BookingViews(viewsets.ViewSet):
 
         return Response(response_info(status=status.HTTP_200_OK,msg="Booking payment",data=res))
 
+    @extend_schema(parameters=[bookperam])
+    @action(detail=False, methods=['GET'])
+    def get_recent_booking(self, request):
+        bk_date = request.query_params.get('booking_date')
+
+        bk = Booking.objects.filter(booking_date=bk_date).order_by('-created_at')
+        res = custom_paginator.paginate_queryset(bk, request)
+
+        serializer = BookingSerializer(res, many=True)
+
+        return custom_paginator.get_paginated_response(serializer.data)
+
     mperam = OpenApiParameter(name='schedule_date', description='Schedule date', required=True, type=str,
                               location=OpenApiParameter.QUERY)
     mperam1 = OpenApiParameter(name='schedule_id', description='Schedule id', required=True, type=int,

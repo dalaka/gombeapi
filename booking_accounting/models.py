@@ -56,9 +56,11 @@ class Booking(models.Model):
 class LoadingBooking(models.Model):
     loading_code = models.CharField(max_length=20)
     plate_number = models.CharField(max_length=20)
+    driver_name = models.CharField(max_length=20)
     sitting_capacity = models.IntegerField(default=0)
     cost_per_booking = models.FloatField(default=0.0)
-    payment_status = models.CharField(max_length=50)
+    amount_paid = models.FloatField(default=0.0)
+    loading_date = models.DateField(null=True)
     payment_method = models.CharField(max_length=50)
     modified_at = models.DateTimeField(default=now)
     created_at = models.DateTimeField(default=now)
@@ -70,7 +72,30 @@ class LoadingBooking(models.Model):
 
     @property
     def charges(self):
-        return self.sitting_capacity*self.cost_per_booking
+        res=0.1*(self.sitting_capacity*self.cost_per_booking)
+        return round(res,2)
+
+    @property
+    def balance(self):
+        return self.charges - self.amount_paid
+    @property
+    def expired(self):
+        if  self.loading_date < date.today():
+            return True
+        else:
+            return False
+
+    @property
+    def payment_status(self):
+        if  self.amount_paid > 0 and self.charges >0:
+            if self.amount_paid == self.charges:
+                return 'Paid'
+            else:
+                return 'Not-Paid'
+        else:
+            return 'Not-Paid'
+
+
 
 class Transaction(models.Model):
     transactionId = models.CharField(max_length=20)

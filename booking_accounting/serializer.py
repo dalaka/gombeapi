@@ -43,6 +43,7 @@ class ScheduleDetailSerializer(serializers.ModelSerializer):
 
 class BookingChangeSerializer(serializers.ModelSerializer):
     route_changed = serializers.BooleanField(write_only=True)
+    schedule_detail = ScheduleDetailSerializer(read_only=True,source='s_detail', required=False)
 
     created_by = UserTrafficSerializer(read_only=True)
     modified_by = UserTrafficSerializer(read_only=True)
@@ -50,7 +51,8 @@ class BookingChangeSerializer(serializers.ModelSerializer):
         model = Booking
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'passenger_full_name', 'booking_code',
                  'seat_no','passenger_phone','nk_full_name','nk_contact','relationship','schedule_id', 'price',
-                 'payment_status','payment_method','destination', 'expired','amount_paid','route_changed')
+                 'payment_status','payment_method','destination', 'expired','amount_paid','route_changed','balance',
+                 'schedule_detail')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
@@ -61,7 +63,7 @@ class BookingChangeSerializer(serializers.ModelSerializer):
                         'nk_contact': {'read_only': True}, 'relationship': {'read_only': True},
                         'expired': {'read_only': True}, 'balance': {'read_only': True},
                         'amount_paid': {'read_only': True},'payment_method': {'read_only': True},
-                       'schedule_id': {'read_only': True}}
+                       'schedule_id': {'read_only': True}, 'schedule_detail': {'read_only': True}}
 
     def validate(self, attrs):
         return super().validate(attrs)
@@ -139,7 +141,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
         user = request.user
         name = generate_activation_code("GBN")
-        booking = Booking.objects.create(price=sch_obj.price,amount_paid=sch_obj.price, booking_date=sch_obj.schedule_date,
+        booking = Booking.objects.create(price=sch_obj.price,amount_paid=0, booking_date=sch_obj.schedule_date,
                                          booking_code=name, destination=sch_obj.route_id.dest,
                                          modified_by=user, created_by=user, created_at=now(), modified_at=now(),
                                          **validated_data)
@@ -151,8 +153,7 @@ class BookingSerializer(serializers.ModelSerializer):
         sch_obj.seats = seats
         sch_obj.seats_available = no - 1
         sch_obj.save()
-        transction(user=user, orderid=booking.booking_code, price=booking.price, des='Booking',
-                   paymet_method=booking.payment_method, trnx_method='Credit')
+
         return booking
 
     def update(self, instance, validated_data):
@@ -170,3 +171,10 @@ class BookingSerializer(serializers.ModelSerializer):
 
 
 
+class BookingPaymentSerializer(serializers.ModelSerializer):
+    amount = serializers.FloatField(write_only=True,required=True)
+    payment_method= serializers.CharField(required=True,write_only=True)
+
+    class Meta:
+        model = Booking
+        fields =('amount', 'payment_method')

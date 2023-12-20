@@ -2,6 +2,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 
 # Create your views here.
+from django.utils.timezone import now
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -10,8 +11,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from booking_accounting.models import Booking
-from booking_accounting.serializer import BookingSerializer, BookingChangeSerializer
+from booking_accounting.loading_serializer import LoadingSerializer, LoadingingPaymentSerializer
+from booking_accounting.models import Booking, LoadingBooking
+from booking_accounting.serializer import BookingSerializer, BookingChangeSerializer, BookingPaymentSerializer, \
+    transction
 from booking_accounting.util import reset_bus_util
 from traffic.models import Schedule
 from traffic.serializer import ScheduleSerializer
@@ -78,7 +81,16 @@ class BookingViews(viewsets.ViewSet):
         else:
             Response(response_info(status=status.HTTP_400_BAD_REQUEST, msg='Invalid request parameter',data=[]))
 
+    def retrieve(self, request, pk=None):
+        vehicle = get_object_or_404(self.queryset, pk=pk)
+        serializer = BookingSerializer(vehicle)
+        return Response(response_info(status=status.HTTP_200_OK, msg="booking details", data=serializer.data))
 
+    def destroy(self, request,pk):
+        id=pk
+        stu=Booking.objects.get(pk=id)
+        stu.delete()
+        return Response(response_info(status=status.HTTP_200_OK, msg='booking delete successfully',data=[]))
     def update(self,request,pk=None):
         obj= get_object_or_404(self.queryset, pk=pk)
         serializer = BookingSerializer(obj,request.data,context={'request':request})
@@ -103,7 +115,31 @@ class BookingViews(viewsets.ViewSet):
               'top_route':top_route,'top_buses':top_buses
               }
 
-        return Response(response_info(status=status.HTTP_200_OK,msg="Booking statistics",data=res))
+        return Response(response_info(status=status.HTTP_200_OK,msg="Booking payment",data=res))
+
+class BookingPaymentViews(viewsets.ViewSet):
+    serializer_class = BookingPaymentSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Booking.objects.all().order_by('created_at')
+
+
+    def update(self, request, pk=None):
+
+        bk_obj=get_object_or_404(self.queryset, pk=pk)
+
+        if bk_obj.payment_status =='Paid':
+            return Response(response_info(status=status.HTTP_401_UNAUTHORIZED, msg="This booking is paid", data=[]))
+        else:
+            bk_obj.amount_paid += request.data.get('amount')
+            bk_obj.payment_method = request.data.get('payment_method')
+            bk_obj.modified_by = request.user
+            bk_obj.modified_at = now()
+            bk_obj.save()
+            transction(user=request.user, orderid=bk_obj.booking_code, price=request.data.get('amount'), des='Booking',
+                       paymet_method=request.data.get('payment_method'), trnx_method='Credit')
+            return Response(response_info(status=status.HTTP_200_OK,msg="Payment made successfully", data=[]))
+
+
 
 class BookingChangeViews(viewsets.ViewSet):
         serializer_class = BookingChangeSerializer
@@ -128,3 +164,76 @@ class BookingChangeViews(viewsets.ViewSet):
                 serializer.save()
                 return Response(response_info(status=status.HTTP_200_OK, msg='Bus changed successfully', data=serializer.data))
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class LoadingViews(viewsets.ViewSet):
+    serializer_class = LoadingSerializer
+    permission_classes =  (IsAuthenticated,)
+    queryset = LoadingBooking.objects.all().order_by('created_at')
+
+    def create(self, request):
+        serializer = LoadingSerializer(data=request.data,context={'request':request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(response_info(status=status.HTTP_201_CREATED, msg="loading created successfully", data=serializer.data))
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request):
+
+        res = custom_paginator.paginate_queryset(self.queryset, request)
+
+        serializer=LoadingSerializer(res, many=True)
+
+
+
+
+        return custom_paginator.get_paginated_response(serializer.data)
+
+
+
+
+    def retrieve(self, request, pk=None):
+        vehicle = get_object_or_404(self.queryset, pk=pk)
+        serializer = LoadingSerializer(vehicle)
+        return Response(response_info(status=status.HTTP_200_OK, msg="schedule details", data=serializer.data))
+
+    def update(self,request,pk=None):
+        item = get_object_or_404(self.queryset, pk=pk)
+        serializer = LoadingSerializer(item,request.data,context={'request':request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'msg': 'Data  created', 'data':serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def destroy(self, request,pk):
+        id=pk
+        stu=LoadingBooking.objects.get(pk=id)
+        stu.delete()
+        return Response(response_info(status=status.HTTP_200_OK, msg='loading delete successfully',data=[]))
+
+
+class LoadingPaymentViews(viewsets.ViewSet):
+    serializer_class = LoadingingPaymentSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = LoadingBooking.objects.all().order_by('created_at')
+
+
+    def update(self, request, pk=None):
+
+        bk_obj=get_object_or_404(self.queryset, pk=pk)
+
+        if bk_obj.payment_status =='Paid':
+            return Response(response_info(status=status.HTTP_401_UNAUTHORIZED, msg="This loading is paid", data=[]))
+        else:
+            bk_obj.amount_paid += request.data.get('amount')
+            bk_obj.payment_method = request.data.get('payment_method')
+            bk_obj.modified_by = request.user
+            bk_obj.modified_at = now()
+            bk_obj.save()
+            transction(user=request.user, orderid=bk_obj.loading_code, price=request.data.get('amount'), des='Booking',
+                       paymet_method=request.data.get('payment_method'), trnx_method='Credit')
+            return Response(response_info(status=status.HTTP_200_OK,msg="Payment made successfully", data=[]))
+
+

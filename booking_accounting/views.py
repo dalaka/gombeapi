@@ -24,7 +24,7 @@ custom_paginator=PageNumberPagination()
 class BookingViews(viewsets.ViewSet):
     serializer_class = BookingSerializer
     permission_classes =  (IsAuthenticated,)
-    queryset = Booking.objects.all().order_by('created_at')
+    queryset = Booking.objects.all().order_by('-created_at')
 
 
 

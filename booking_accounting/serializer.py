@@ -52,7 +52,7 @@ class BookingChangeSerializer(serializers.ModelSerializer):
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'passenger_full_name', 'booking_code',
                  'seat_no','passenger_phone','nk_full_name','nk_contact','relationship','schedule_id', 'price',
                  'payment_status','payment_method','destination', 'expired','amount_paid','route_changed','balance',
-                 'schedule_detail')
+                 'schedule_detail','source')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
@@ -63,7 +63,8 @@ class BookingChangeSerializer(serializers.ModelSerializer):
                         'nk_contact': {'read_only': True}, 'relationship': {'read_only': True},
                         'expired': {'read_only': True}, 'balance': {'read_only': True},
                         'amount_paid': {'read_only': True},'payment_method': {'read_only': True},
-                       'schedule_id': {'read_only': True}, 'schedule_detail': {'read_only': True}}
+                       'schedule_id': {'read_only': True}, 'schedule_detail': {'read_only': True},
+                        'source': {'read_only': True}}
 
     def validate(self, attrs):
         return super().validate(attrs)
@@ -94,6 +95,8 @@ class BookingChangeSerializer(serializers.ModelSerializer):
         if route_changed:
             instance.seat_no=seat_no
             instance.price = sch_obj.price
+            instance.destination = sch_obj.route_id.dest
+            instance.source = sch_obj.route_id.source
             instance.schedule_id = sch_obj
             instance.modified_by = user
             instance.modified_at = now()
@@ -117,7 +120,8 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'passenger_full_name', 'booking_code',
                  'seat_no','passenger_phone','nk_full_name','nk_contact','relationship','schedule_id', 'price',
-                 'payment_status','payment_method','destination', 'expired', 'balance', 'amount_paid', 'schedule_detail')
+                 'payment_status','payment_method','destination', 'expired', 'balance', 'amount_paid', 'schedule_detail',
+                 'source')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},
@@ -125,7 +129,7 @@ class BookingSerializer(serializers.ModelSerializer):
                         'price': {'read_only': True},'payment_status': {'read_only': True},
                         'destination': {'read_only': True},'expired': {'read_only': True},
                         'balance': {'read_only': True}, 'amount_paid': {'read_only': True},
-                        'schedule_detail': {'read_only': True}
+                        'schedule_detail': {'read_only': True},'source': {'read_only': True}
                        }
 
     def validate(self, attrs):
@@ -142,7 +146,7 @@ class BookingSerializer(serializers.ModelSerializer):
         user = request.user
         name = generate_activation_code("GBN")
         booking = Booking.objects.create(price=sch_obj.price,amount_paid=0, booking_date=sch_obj.schedule_date,
-                                         booking_code=name, destination=sch_obj.route_id.dest,
+                                         booking_code=name, destination=sch_obj.route_id.dest,source=sch_obj.route_id.source,
                                          modified_by=user, created_by=user, created_at=now(), modified_at=now(),
                                          **validated_data)
         for s in seats:

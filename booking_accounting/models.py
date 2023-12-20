@@ -16,6 +16,7 @@ class Booking(models.Model):
     passenger_phone = models.CharField(max_length=30)
     nk_full_name = models.CharField(max_length=50)
     destination = models.CharField(max_length=50)
+    source = models.CharField(max_length=50, null=True)
     nk_contact= models.CharField(max_length=50)
     relationship= models.CharField(max_length=50)
     schedule_id = models.ForeignKey(Schedule, related_name='booking_schedule',on_delete=models.PROTECT,blank=False)

@@ -38,7 +38,12 @@ class Booking(models.Model):
 
     @property
     def balance(self):
-        return self.price - self.amount_paid
+        if self.amount_paid>self.price:
+            refund= self.amount_paid - self.price
+            return {'balance': 0, 'change':refund}
+        else:
+            balance = self.price - self.amount_paid
+            return {'balance': balance, 'change': 0}
     @property
     def expired(self):
         if  self.booking_date < date.today():
@@ -48,7 +53,7 @@ class Booking(models.Model):
     @property
     def payment_status(self):
         if  self.amount_paid > 0 and self.price >0:
-            if self.amount_paid == self.price:
+            if self.amount_paid == self.price or self.amount_paid>self.price:
                 return 'Paid'
             else:
                 return 'Not-Paid'

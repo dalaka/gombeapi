@@ -1,6 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 
+from booking_accounting.util import create_invoice
 from userapp.models import User
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Vehicle, Driver, DriverLog, Maintenance, VehicleRepair, Item, Approval
@@ -109,10 +110,9 @@ class MaintenanceSerializer(serializers.ModelSerializer):
 
         maintenance.maintenance_type.add(*types)
 
-        approve=Approval.objects.create(approval_code=generate_activation_code("AM"),
-                                        approval_type=f"{vehicleid.custom_naming} needs maintenance ",modified_by=user,
-                                        created_by=user,created_at=now(),modified_at=now())
-        maintenance.approval_id=approve
+        approve=create_invoice(purpose=f"{vehicleid.custom_naming} Repairs ",total=maintenance.maintenance_cost,user=user )
+
+        maintenance.invoice_id=approve
         maintenance.save()
         return maintenance
 
@@ -158,11 +158,9 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
                                                created_by=user,created_at=now(),modified_at=now(),**validated_data )
 
 
+        approve=create_invoice(purpose=f"{vehicleid.custom_naming} Repairs ",total=repair.repair_cost,user=user )
 
-        approve=Approval.objects.create(approval_code=generate_activation_code("AR"),
-                                        approval_type=f"{vehicleid.custom_naming} Repairs ",modified_by=user,
-                                        created_by=user,created_at=now(),modified_at=now())
-        repair.approval_id=approve
+        repair.invoice_id=approve
         repair.save()
         return repair
 

@@ -1,4 +1,7 @@
-from vehicle_driver_app.models import Approval
+from django.utils.timezone import now
+
+from userapp.utils import generate_activation_code
+from vehicle_driver_app.models import Approval, Invoice
 
 
 def reset_bus_util(old_sch,seat_no):
@@ -12,4 +15,10 @@ def reset_bus_util(old_sch,seat_no):
     old_sch.seats_available = no + 1
     old_sch.save()
     return True
+
+def create_invoice(purpose,total,user):
+    res=Invoice.objects.create(invoiceId=generate_activation_code("GIN"),purpose=purpose,invoice_total=total,
+                               modified_by=user,created_by=user)
+    return res
+
 

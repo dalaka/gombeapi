@@ -81,9 +81,15 @@ class LoadingBooking(models.Model):
         res=0.1*(self.sitting_capacity*self.cost_per_booking)
         return round(res,2)
 
+
     @property
     def balance(self):
-        return self.charges - self.amount_paid
+        if self.amount_paid>self.charges:
+            refund= self.amount_paid - self.charges
+            return {'balance': 0, 'change':refund}
+        else:
+            balance = self.charges - self.amount_paid
+            return {'balance': balance, 'change': 0}
     @property
     def expired(self):
         if  self.loading_date < date.today():
@@ -93,8 +99,8 @@ class LoadingBooking(models.Model):
 
     @property
     def payment_status(self):
-        if  self.amount_paid > 0 and self.charges >0:
-            if self.amount_paid == self.charges:
+        if  self.amount_paid > 0 and self.price >0:
+            if self.amount_paid == self.price or self.amount_paid>self.price:
                 return 'Paid'
             else:
                 return 'Not-Paid'
@@ -120,20 +126,3 @@ class Transaction(models.Model):
     def __str__(self):
         return self.transactionId
 
-
-class Invoice(models.Model):
-    invoiceId = models.CharField(max_length=20)
-    purpose = models.CharField(max_length=50)
-    description = models.CharField(max_length=50)
-    receiver_name = models.CharField(max_length=50)
-    payment_method = models.CharField(max_length=50)
-    amount_paid = models.FloatField(default=0.0)
-    modified_at = models.DateTimeField(default=now)
-    created_at = models.DateTimeField(default=now)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='invoice_created_by', on_delete=models.SET_NULL, null=True)
-    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='invoice_modified_by', on_delete=models.SET_NULL, null=True)
-
-
-
-    def __str__(self):
-        return self.invoiceId

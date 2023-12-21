@@ -7,11 +7,30 @@ from django.db import models
 from django.utils.timezone import now
 
 from GombeLine import settings
+
 from userapp.models import BaseModel
 from userapp.utils import generate_activation_code
 def upload_to(instance, filename):
     return os.path.join('image',str(instance.id), filename)
 
+class Invoice(models.Model):
+    invoiceId = models.CharField(max_length=20)
+    purpose = models.CharField(max_length=50)
+    description = models.CharField(max_length=50,null=True)
+    receiver_name = models.CharField(max_length=50, null=True)
+    payment_method = models.CharField(max_length=50, null=True)
+    invoice_total = models.FloatField(default=0.0)
+    amount_paid = models.FloatField(default=0.0)
+    modified_at = models.DateTimeField(default=now)
+    created_at = models.DateTimeField(default=now)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='invoice_created_by', on_delete=models.SET_NULL, null=True)
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='invoice_modified_by', on_delete=models.SET_NULL, null=True)
+    is_approved= models.BooleanField(default=False)
+    approved_by = models.CharField(max_length=250,blank=False)
+
+
+    def __str__(self):
+        return self.invoiceId
 class Item(models.Model):
 
     modified_at = models.DateTimeField(default=now)
@@ -125,6 +144,7 @@ class Maintenance(models.Model):
     due_date = models.DateField()
     maintenance_type = models.ManyToManyField(Item)
     maintenance_cost = models.FloatField()
+    invoice_id = models.ForeignKey(Invoice, related_name='invoice_maintenance',on_delete=models.PROTECT, null=True)
     approval_id = models.ForeignKey(Approval, related_name='approval_maintenance', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
@@ -146,7 +166,7 @@ class VehicleRepair(models.Model):
     repair_descriptions = models.CharField(max_length=250,blank=False)
     repair_cost = models.FloatField()
     approval_id = models.ForeignKey(Approval, related_name='approval_repair',on_delete=models.PROTECT,null=True)
-
+    invoice_id = models.ForeignKey(Invoice, related_name='invoice_repair',on_delete=models.PROTECT, null=True)
 
     def __str__(self):
         return self.repair_code

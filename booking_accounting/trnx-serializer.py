@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from booking_accounting.models import Invoice
 from traffic.serializer import UserTrafficSerializer
+from vehicle_driver_app.models import Invoice
 
 
 class InvoiceSerializer(serializers.ModelSerializer):

@@ -16,9 +16,9 @@ def reset_bus_util(old_sch,seat_no):
     old_sch.save()
     return True
 
-def create_invoice(purpose,total,user):
+def create_invoice(purpose,total,user,description):
     res=Invoice.objects.create(invoiceId=generate_activation_code("GIN"),purpose=purpose,invoice_total=total,
-                               modified_by=user,created_by=user)
+                               modified_by=user,created_by=user,description=description)
     return res
 
 

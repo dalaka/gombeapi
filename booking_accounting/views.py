@@ -203,7 +203,7 @@ class BookingChangeViews(viewsets.ViewSet):
 class LoadingViews(viewsets.ViewSet):
     serializer_class = LoadingSerializer
     permission_classes =  (IsAuthenticated,)
-    queryset = LoadingBooking.objects.all().order_by('created_at')
+    queryset = LoadingBooking.objects.all().order_by('-created_at')
 
     def create(self, request):
         serializer = LoadingSerializer(data=request.data,context={'request':request})

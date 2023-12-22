@@ -110,7 +110,8 @@ class MaintenanceSerializer(serializers.ModelSerializer):
 
         maintenance.maintenance_type.add(*types)
 
-        approve=create_invoice(purpose=f"{vehicleid.custom_naming} Repairs ",total=maintenance.maintenance_cost,user=user )
+        approve=create_invoice(purpose=maintenance.maintenance_code,total=maintenance.maintenance_cost,
+                               user=user, description= f"{vehicleid.custom_naming} Repairs")
 
         maintenance.invoice_id=approve
         maintenance.save()
@@ -158,7 +159,8 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
                                                created_by=user,created_at=now(),modified_at=now(),**validated_data )
 
 
-        approve=create_invoice(purpose=f"{vehicleid.custom_naming} Repairs ",total=repair.repair_cost,user=user )
+        approve=create_invoice(purpose=repair.repair_code ,total=repair.repair_cost,user=user,
+                               description=f"{vehicleid.custom_naming} Repairs")
 
         repair.invoice_id=approve
         repair.save()

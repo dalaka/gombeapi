@@ -99,8 +99,8 @@ class LoadingBooking(models.Model):
 
     @property
     def payment_status(self):
-        if  self.amount_paid > 0 and self.price >0:
-            if self.amount_paid == self.price or self.amount_paid>self.price:
+        if  self.amount_paid > 0 and self.charges >0:
+            if self.amount_paid == self.charges or self.amount_paid>self.charges:
                 return 'Paid'
             else:
                 return 'Not-Paid'

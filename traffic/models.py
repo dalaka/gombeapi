@@ -33,6 +33,7 @@ class Schedule(models.Model):
     price=models.FloatField()
     modified_at = models.DateTimeField(default=now)
     seats= models.JSONField()
+    depart_time = models.TimeField(null=True)
     seats_available = models.IntegerField()
     schedule_date = models.DateField()
     created_at = models.DateTimeField(default=now)

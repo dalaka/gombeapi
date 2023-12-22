@@ -38,5 +38,6 @@ urlpatterns = [
     path('schedule/', include('traffic.schedule-urls')),
     path('booking/', include('booking_accounting.booking-urls')),
     path('loading/', include('booking_accounting.loading-urls')),
+    path('invoice/', include('booking_accounting.tranx-urls')),
 ]+ static(dev.MEDIA_URL, document_root=dev.MEDIA_ROOT)
 

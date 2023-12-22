@@ -2,6 +2,7 @@ from django.utils.timezone import now
 from rest_framework import serializers
 
 from booking_accounting.models import Booking, Transaction
+from booking_accounting.util import create_invoice
 from traffic.models import Schedule
 from traffic.serializer import UserTrafficSerializer, ScheduleSerializer
 from userapp.utils import generate_activation_code
@@ -88,10 +89,9 @@ class BookingChangeSerializer(serializers.ModelSerializer):
         sch_obj.seats = seats
         sch_obj.seats_available = no - 1
         sch_obj.save()
-        approve=Approval.objects.create(approval_code=generate_activation_code("AR"),
-                                        approval_type=f"Bus Changed from {old_sch.vehicle_id.custom_naming} to "
-                                                      f"{sch_obj.vehicle_id.custom_naming} ",modified_by=user,
-                                        created_by=user,created_at=now(),modified_at=now())
+        n=f"Bus Changed from {old_sch.vehicle_id.custom_naming} to {sch_obj.vehicle_id.custom_naming} "
+
+
         if route_changed:
             instance.seat_no=seat_no
             instance.price = sch_obj.price
@@ -101,6 +101,7 @@ class BookingChangeSerializer(serializers.ModelSerializer):
             instance.modified_by = user
             instance.modified_at = now()
             instance.save()
+            #approve = create_invoice(purpose=instance.booking_code, description=n,total=instance.balance['change'] )
             return instance
         else:
             instance.seat_no=seat_no

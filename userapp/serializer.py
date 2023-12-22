@@ -122,8 +122,11 @@ class PasswordResetSerializer(serializers.Serializer):
                 'first_name': user.first_name
             }
             res=reset_pwd_email(data=data)
-            print(res)
+
         return super().validate(attrs)
+
+
+
 class SetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=100, min_length=6, write_only=True)
     confirm_password = serializers.CharField(max_length=100, min_length=6, write_only=True)

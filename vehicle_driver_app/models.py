@@ -31,6 +31,29 @@ class Invoice(models.Model):
 
     def __str__(self):
         return self.invoiceId
+
+
+
+    @property
+    def balance(self):
+        if self.amount_paid>self.invoice_total:
+            refund= self.amount_paid - self.invoice_total
+            return {'balance': 0, 'change':refund}
+        else:
+            balance = self.invoice_total - self.amount_paid
+            return {'balance': balance, 'change': 0}
+
+    @property
+    def invoice_status(self):
+        if  self.amount_paid > 0 and self.invoice_total >0:
+            if self.amount_paid == self.invoice_total or self.amount_paid>self.invoice_total:
+                return 'Paid'
+            else:
+                return 'Not-Paid'
+        else:
+            return 'Not-Paid'
+
+
 class Item(models.Model):
 
     modified_at = models.DateTimeField(default=now)

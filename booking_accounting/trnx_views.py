@@ -1,8 +1,11 @@
+import datetime
 from datetime import date
-
+import pandas as pd
+from django.db.models import Sum
 from django.utils.timezone import now
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -114,6 +117,45 @@ class TransactionViews(viewsets.ViewSet):
 
         return custom_paginator.get_paginated_response(serializer.data)
 
+    @extend_schema(parameters=[sdperm, edperm])
+    @action(detail=False, methods=['GET'])
+    def account_dashboard_stat(self, request, *args, **kwargs):
+        data=[]
+        start_d=date.today().strftime('%Y-01-01')
+        end_d = date.today().strftime('%Y-%m-%d')
+
+        s_date=request.query_params.get('start_date', start_d)
+        e_date= request.query_params.get('end_date',end_d)
+        year=datetime.datetime.strptime(s_date, "%Y-%m-%d").date()
+
+        month_list = pd.period_range(start=s_date, end=e_date, freq='M')
+        month_list = [month.strftime("%m") for month in month_list]
+        total_income = Transaction.objects.filter(created_at__year=year.year,trans_method='Credit').aggregate(
+            Sum('amount_paid'))['amount_paid__sum']
+        total_expense = Transaction.objects.filter(created_at__year=year.year,trans_method='Expense').aggregate(
+            Sum('amount_paid'))['amount_paid__sum']
+
+        for i in month_list:
+            total=Transaction.objects.filter(created_at__month=i,created_at__year=year.year).aggregate(Sum(
+                'amount_paid'))['amount_paid__sum']
+            if total==None:
+                total=0.0
 
 
+
+            ress = {"month": i, "total": total}
+            data.append(ress)
+        if total_income==None:
+            total_income =0
+        if total_expense==None:
+            total_expense =0
+        balance=total_income-total_expense
+
+        res = {"total_income": total_income,"balance":balance, "total_expense": total_expense, "data":data}
+        return Response({"message": "dashboard", "result": res}, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk=None):
+        vehicle = get_object_or_404(self.queryset, pk=pk)
+        serializer =self.serializer_class(vehicle)
+        return Response(response_info(status=status.HTTP_200_OK, msg="transaction details", data=serializer.data))
 

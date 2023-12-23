@@ -22,3 +22,19 @@ def create_invoice(purpose,total,user,description):
     return res
 
 
+from datetime import date, timedelta
+
+
+def last_thirtydays(d):
+    end_dt = date.today()
+    start_dt = end_dt
+
+    # difference between current and previous date
+    delta = timedelta(days=d)
+    start_dt -= delta
+    ss = start_dt.strftime("%Y-%m-%d")
+    ee = end_dt.strftime("%Y-%m-%d")
+    s = f"{ss} 00:00:00"
+    e = f"{ee} 23:59:59"
+    return {"start_dt": s, "end_dt": e}
+

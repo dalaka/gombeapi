@@ -11,11 +11,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from booking_accounting.models import Transaction
+from booking_accounting.models import Transaction, Booking
 from booking_accounting.serializer import transction
 from booking_accounting.trnx_serializer import InvoiceSerializer, InvoicePaymentSerializer, TransactionSerializer
+from booking_accounting.util import last_thirtydays
 from userapp.permission_decorator import response_info
-from vehicle_driver_app.models import Invoice
+from vehicle_driver_app.models import Invoice, VehicleRepair
 
 custom_paginator=PageNumberPagination()
 
@@ -142,9 +143,6 @@ class TransactionViews(viewsets.ViewSet):
                 'amount_paid'))['amount_paid__sum']
             if total==None:
                 total=0.0
-
-
-
             ress = {"month": i, "total": total}
             data.append(ress)
         if total_income==None:
@@ -153,7 +151,17 @@ class TransactionViews(viewsets.ViewSet):
             total_expense =0
         balance=total_income-total_expense
 
-        res = {"total_income": total_income,"balance":balance, "total_expense": total_expense, "data":data}
+        k=last_thirtydays(30)
+        bk_total= Booking.objects.filter(created_at__range=[k['start_dt'], k['end_dt']]
+                                         ).aggregate(Sum('amount_paid'))['amount_paid__sum']
+
+        repair_total= VehicleRepair.objects.filter(created_at__range=[k['start_dt'], k['end_dt']]
+                                         ).aggregate(Sum('repair_cost'))['repair_cost__sum']
+        expense_total= Transaction.objects.filter(created_at__range=[k['start_dt'], k['end_dt']], trans_method="Expense"
+                                         ).aggregate(Sum('amount_paid'))['amount_paid__sum']
+        over_view={"booking_total":bk_total, "repair_cost":repair_total, "expense_total": expense_total}
+        res = {"total_income": total_income,"balance":balance, "total_expense": total_expense,
+               "over_view":over_view, "data":data}
         return Response({"message": "dashboard", "result": res}, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None):

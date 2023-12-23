@@ -81,7 +81,9 @@ class InvoicePaymentViews(viewsets.ViewSet):
             bk_obj.amount_paid += request.data.get('amount')
             bk_obj.payment_method = request.data.get('payment_method')
             bk_obj.receiver_name = request.data.get('receiver_name')
+            bk_obj.is_approved = request.data.get('is_approved')
             bk_obj.modified_by = request.user
+            bk_obj.approved_by = f"{request.user.first_name} {request.user.last_name}"
             bk_obj.modified_at = now()
             bk_obj.save()
             transction(user=request.user, orderid=bk_obj.invoiceId, price=request.data.get('amount'), des=bk_obj.description,

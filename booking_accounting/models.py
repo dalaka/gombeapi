@@ -126,3 +126,20 @@ class Transaction(models.Model):
     def __str__(self):
         return self.transactionId
 
+class CurrentBalance(models.Model):
+    name= models.CharField(max_length=50)
+    current_total_income = models.FloatField(default=0.0)
+    current_total_expense = models.FloatField(default=0.0)
+
+    @property
+    def profit(self):
+        return self.current_total_income-self.current_total_expense
+
+
+class Report(models.Model):
+    start = models.CharField(max_length=255, blank=True)
+    end  = models.CharField(max_length=255, blank=True)
+    report_type  = models.CharField(max_length=255, blank=True)
+    total  = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(default=now)
+    data = models.JSONField()

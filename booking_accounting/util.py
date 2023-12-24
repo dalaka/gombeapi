@@ -1,5 +1,6 @@
 from django.utils.timezone import now
 
+from booking_accounting.models import Report
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Approval, Invoice
 
@@ -38,3 +39,14 @@ def last_thirtydays(d):
     e = f"{ee} 23:59:59"
     return {"start_dt": s, "end_dt": e}
 
+def create_report(s,e,report_type, total,data):
+    obj=Report.objects.filter(start=s, end=e, report_type=report_type)
+    if obj.exists():
+        res=obj[0]
+        res.total=total
+        res.data = data
+        res.save()
+        return res
+    else:
+        res=Report.objects.create(total=total, data=data, start=s, end=e, report_type=report_type)
+        return res

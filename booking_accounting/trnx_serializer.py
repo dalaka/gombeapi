@@ -1,10 +1,62 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 
-from booking_accounting.models import LoadingBooking, Transaction
+from booking_accounting.models import LoadingBooking, Transaction, CurrentBalance, Report, Booking
 from traffic.serializer import UserTrafficSerializer
 from userapp.utils import generate_activation_code
-from vehicle_driver_app.models import Invoice
+from vehicle_driver_app.models import Invoice, VehicleRepair
+
+
+class VehicleRepairReportSerializer(serializers.ModelSerializer):
+    created_by = UserTrafficSerializer(read_only=True)
+    modified_by = UserTrafficSerializer(read_only=True)
+    class Meta:
+        model = VehicleRepair
+        fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'vehicle_id', 'repair_date',
+                 'repair_descriptions', 'repair_cost', 'repair_code')
+
+
+class BookingReportSerializer(serializers.ModelSerializer):
+
+    created_by = UserTrafficSerializer(read_only=True)
+    modified_by = UserTrafficSerializer(read_only=True)
+    class Meta:
+        model = Booking
+        fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'passenger_full_name', 'booking_code',
+                 'seat_no','passenger_phone','nk_full_name','nk_contact','relationship', 'price',
+                 'payment_status','payment_method','destination', 'expired', 'balance', 'amount_paid',
+                 'source')
+
+class ReportSerializer(serializers.ModelSerializer):
+
+
+    class Meta:
+        model = Report
+        fields =('id',  'start', 'created_at', 'end', 'report_type', 'total','data')
+        read_only_fields = ['total', 'created_at', 'data']
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+
+
+
+        user = request.user
+        name = generate_activation_code("GIN")
+        loading =Invoice.objects.create(invoiceId=name,amount_paid=0,modified_by=user, created_by=user,**validated_data)
+        return loading
+
+
+class BalanceSerializer(serializers.ModelSerializer):
+
+
+    class Meta:
+        model = CurrentBalance
+        fields =('current_total_income', 'current_total_expense', 'profit')
+
+
 
 
 class InvoiceSerializer(serializers.ModelSerializer):

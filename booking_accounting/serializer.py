@@ -1,7 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 
-from booking_accounting.models import Booking, Transaction
+from booking_accounting.models import Booking, Transaction, CurrentBalance
 from booking_accounting.util import create_invoice
 from traffic.models import Schedule
 from traffic.serializer import UserTrafficSerializer, ScheduleSerializer
@@ -14,7 +14,20 @@ def transction(user,orderid,price,des,paymet_method,trnx_method):
                                created_by=user, modified_by=user,
                                orderId=orderid,amount_paid=price,description=des,payment_method=paymet_method,
                                trans_method=trnx_method)
-    return True
+    try:
+        bal = CurrentBalance.objects.get(name='pay')
+        if trnx_method =='Credit':
+            bal.current_total_income +=price
+        else:
+            bal.current_total_expense +=price
+        bal.save()
+        return True
+    except CurrentBalance.DoesNotExist:
+        if trnx_method == 'Credit':
+            CurrentBalance.objects.create(name='pay',current_total_expense=0,current_total_income=price)
+        else:
+            CurrentBalance.objects.create(name='pay', current_total_expense=price, current_total_income=0)
+        return True
 
 class VehicleDetailSerializer(serializers.ModelSerializer):
 

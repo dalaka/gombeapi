@@ -84,7 +84,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
         fields =('id',  'modified_at', 'created_at', 'modified_by', 'created_by', 'name', 'route_id','driver_id',
-                 'price', 'seats', 'schedule_date', 'seats_available', 'vehicle_id','driver', 'vehicle','route_detail')
+                 'price', 'seats', 'schedule_date','depart_time', 'seats_available', 'vehicle_id','driver', 'vehicle','route_detail')
 
         extra_kwargs = {'modified_at': {'read_only': True}, 'created_at': {'read_only': True},
                         'modified_by': {'read_only': True},'created_by': {'read_only': True},

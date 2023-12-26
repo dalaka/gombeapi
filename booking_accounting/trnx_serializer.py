@@ -1,10 +1,20 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 
-from booking_accounting.models import LoadingBooking, Transaction, CurrentBalance, Report, Booking
+from booking_accounting.models import LoadingBooking, Transaction, CurrentBalance, Report, Booking, AuditLog
 from traffic.serializer import UserTrafficSerializer
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Invoice, VehicleRepair
+
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    created_by = UserTrafficSerializer(read_only=True)
+
+    class Meta:
+        model = AuditLog
+        fields =('id', 'created_at', 'created_by', 'audit_type', 'audit_description')
+
+
 
 
 class VehicleRepairReportSerializer(serializers.ModelSerializer):

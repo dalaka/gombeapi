@@ -2,7 +2,7 @@ from django.utils.timezone import now
 from rest_framework import serializers
 
 from booking_accounting.models import Booking, Transaction, CurrentBalance
-from booking_accounting.util import create_invoice
+from booking_accounting.util import create_invoice, audit_log
 from traffic.models import Schedule
 from traffic.serializer import UserTrafficSerializer, ScheduleSerializer
 from userapp.utils import generate_activation_code
@@ -53,7 +53,7 @@ class ScheduleDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Schedule
-        fields =( 'driver', 'vehicle')
+        fields =( 'driver', 'vehicle','schedule_date', 'depart_time')
 
 class BookingChangeSerializer(serializers.ModelSerializer):
     route_changed = serializers.BooleanField(write_only=True)
@@ -114,15 +114,17 @@ class BookingChangeSerializer(serializers.ModelSerializer):
             instance.modified_by = user
             instance.modified_at = now()
             instance.save()
-            #approve = create_invoice(purpose=instance.booking_code, description=n,total=instance.balance['change'] )
-            return instance
+
+            #approve = create_invoice(purpose=instance.booking_code, description=n,total=instance.balance['change']
         else:
             instance.seat_no=seat_no
             instance.schedule_id = sch_obj
             instance.modified_by = user
             instance.modified_at = now()
             instance.save()
-            return instance
+        desc=f"{n} with booking code {instance.booking_code} "
+        audit_log(name="Booking", desc=desc, user=user)
+        return instance
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -172,6 +174,8 @@ class BookingSerializer(serializers.ModelSerializer):
         sch_obj.seats_available = no - 1
         sch_obj.save()
 
+        audit_log()
+
         return booking
 
     def update(self, instance, validated_data):
@@ -185,6 +189,8 @@ class BookingSerializer(serializers.ModelSerializer):
         instance.modified_by=user
         instance.modified_at=now()
         instance.save()
+        desc=f"Update was done on the this booking {instance.booking_code}"
+        audit_log(name="Book",desc=desc,user=user)
         return instance
 
 

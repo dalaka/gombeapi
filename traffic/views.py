@@ -10,6 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from booking_accounting.util import audit_log
 from traffic.models import Route, Schedule
 from traffic.serializer import RouteSerializer, ScheduleSerializer
 from traffic.utils import grouped_schedule
@@ -59,7 +60,10 @@ class RouteViews(viewsets.ViewSet):
     def destroy(self, request,pk):
         id=pk
         stu=Route.objects.get(pk=id)
+        d=stu.name
         stu.delete()
+        desc=f"This Route {d} has been deleted"
+        audit_log(name="Route", desc=desc, user=request.user)
         return Response(response_info(status=status.HTTP_200_OK, msg='route delete successfully',data=[]))
 
 
@@ -141,7 +145,10 @@ class ScheduleViews(viewsets.ViewSet):
     def destroy(self, request,pk):
         id=pk
         stu=Schedule.objects.get(pk=id)
+        d=stu.name
         stu.delete()
+        desc=f"This schedule {d.booking_code} has been deleted"
+        audit_log(name="Schedule", desc=desc, user=request.user)
         return Response(response_info(status=status.HTTP_200_OK, msg='schedule delete successfully',data=[]))
 
 

@@ -1,6 +1,6 @@
 from django.utils.timezone import now
 
-from booking_accounting.models import Report
+from booking_accounting.models import Report, AuditLog
 from userapp.utils import generate_activation_code
 from vehicle_driver_app.models import Approval, Invoice
 
@@ -50,3 +50,6 @@ def create_report(s,e,report_type, total,data):
     else:
         res=Report.objects.create(total=total, data=data, start=s, end=e, report_type=report_type)
         return res
+def audit_log(name,desc,user):
+    AuditLog.objects.create(audit_type=name, audit_description=desc, created_by=user)
+    return True

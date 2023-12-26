@@ -15,7 +15,7 @@ from booking_accounting.loading_serializer import LoadingSerializer, LoadingingP
 from booking_accounting.models import Booking, LoadingBooking
 from booking_accounting.serializer import BookingSerializer, BookingChangeSerializer, BookingPaymentSerializer, \
     transction
-from booking_accounting.util import reset_bus_util
+from booking_accounting.util import reset_bus_util, audit_log
 from traffic.models import Schedule
 from traffic.serializer import ScheduleSerializer
 from userapp.permission_decorator import response_info
@@ -89,7 +89,10 @@ class BookingViews(viewsets.ViewSet):
     def destroy(self, request,pk):
         id=pk
         stu=Booking.objects.get(pk=id)
+        d=stu
         stu.delete()
+        desc=f"This booking {d.booking_code} has been deleted"
+        audit_log(name="Booking", desc=desc, user=request.user)
         return Response(response_info(status=status.HTTP_200_OK, msg='booking delete successfully',data=[]))
     def update(self,request,pk=None):
         obj= get_object_or_404(self.queryset, pk=pk)
@@ -243,7 +246,11 @@ class LoadingViews(viewsets.ViewSet):
     def destroy(self, request,pk):
         id=pk
         stu=LoadingBooking.objects.get(pk=id)
+        d=stu.loading_code
         stu.delete()
+
+        desc=f"This loading {d} has been deleted"
+        audit_log(name="Loading", desc=desc, user=request.user)
         return Response(response_info(status=status.HTTP_200_OK, msg='loading delete successfully',data=[]))
 
 

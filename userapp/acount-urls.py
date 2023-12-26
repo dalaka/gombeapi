@@ -3,12 +3,12 @@ from rest_framework import routers
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 from userapp.views import AllGroupView, UserView, LocationView, DepartmentView, RegisterUserView, VerifyEmailView, \
-    LoginUserView, ResetPwdView, SetNewPasswordView, PasswordResetConfirmView, LogoutView
+    LoginUserView, ResetPwdView, SetNewPasswordView, PasswordResetConfirmView, LogoutView, ChangePasswordView
 
 router = routers.DefaultRouter()
 
 router.register('',  UserView,'user')
-
+router.register('change-password',  ChangePasswordView,'change-user')
 urlpatterns = [
 
 

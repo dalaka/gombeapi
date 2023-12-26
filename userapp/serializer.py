@@ -13,6 +13,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
+from booking_accounting.util import audit_log
 from userapp.models import Location, Department, User, OTP
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -142,7 +143,7 @@ class SetNewPasswordSerializer(serializers.Serializer):
         confirm_password = attrs.get('confirm_password')
         user_id = force_str(urlsafe_base64_decode(uidb64))
         user=User.objects.get(id=user_id)
-
+        request = self.context.get('request')
         ck_token=PasswordResetTokenGenerator().check_token(user, token)
 
         if  not ck_token:
@@ -152,6 +153,8 @@ class SetNewPasswordSerializer(serializers.Serializer):
         else:
             user.set_password(password)
             user.save()
+            desc = f"This {user.username} has changed password"
+            audit_log(name="user", desc=desc, user=request.user)
             return user
 
 
@@ -175,7 +178,8 @@ class LoginSerializer(serializers.ModelSerializer):
         if not user.is_verified:
             raise AuthenticationFailed("User has not been verified")
         user_token=user.token()
-
+        desc = f"This {user.username} has login "
+        audit_log(name="user", desc=desc, user=user)
         return {"access_token":user_token.get("access_token"),
                 "refresh_token": user_token.get("refresh"),
                 "permission": get_perm(user)
@@ -254,8 +258,12 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
+        request = self.context.get('request')
 
         instance.set_password(validated_data['new_password'])
+
+        desc = f"This user {instance.username} has changed password"
+        audit_log(name="user", desc=desc, user=request.user)
         instance.save()
 
         return instance

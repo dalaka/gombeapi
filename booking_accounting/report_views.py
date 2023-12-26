@@ -11,10 +11,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from booking_accounting.models import Transaction, Booking, Report, CurrentBalance
+from booking_accounting.models import Transaction, Booking, Report, CurrentBalance, AuditLog
 from booking_accounting.serializer import transction
 from booking_accounting.trnx_serializer import InvoiceSerializer, InvoicePaymentSerializer, TransactionSerializer, \
-    ReportSerializer, BookingReportSerializer, VehicleRepairReportSerializer, BalanceSerializer
+    ReportSerializer, BookingReportSerializer, VehicleRepairReportSerializer, BalanceSerializer, AuditLogSerializer
 from booking_accounting.util import last_thirtydays, create_report
 from traffic.models import Schedule
 from userapp.permission_decorator import response_info
@@ -159,3 +159,29 @@ class ReportViews(viewsets.ViewSet):
                "month_position": month_position, "top_routes_year": top_route_year, "top_routes_month":top_route_month,
                'data':data}
         return Response({"message": "dashboard", "result": res}, status=status.HTTP_200_OK)
+
+
+
+class AuditViews(viewsets.ViewSet):
+    serializer_class = AuditLogSerializer
+    permission_classes =  (IsAuthenticated,)
+    queryset = AuditLog.objects.all().order_by('-created_at')
+
+    sdperm = OpenApiParameter(name='search_date', description='search date', required=False, type=str,
+                              location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[sdperm])
+    def list(self, request):
+        start_d = date.today().strftime('%Y-%m-%d')
+        search = request.query_params.get('search_date', start_d)
+        search_date=datetime.datetime.strptime(search, "%Y-%m-%d").date()
+
+        res=self.queryset.filter(created_at__year=search_date.year, created_at__month=search_date.month, created_at__day=search_date.day)
+        res = custom_paginator.paginate_queryset(res, request)
+
+        serializer=self.serializer_class(res, many=True)
+
+
+
+        return custom_paginator.get_paginated_response(serializer.data)
+
+

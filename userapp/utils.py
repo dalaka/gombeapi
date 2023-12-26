@@ -52,6 +52,7 @@ def send_email(subject, to_email,full_name, code,tmpid):
     }
 
     res =  mailjet.send.create(data=data)
+    print(res)
     return res
 
 

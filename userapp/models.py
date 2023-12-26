@@ -140,7 +140,7 @@ class User(AbstractUser, PermissionsMixin):
 
 class OTP(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    otp_secret = models.CharField(max_length=16)
+    otp_secret = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
     is_verified = models.BooleanField(default=False)
 

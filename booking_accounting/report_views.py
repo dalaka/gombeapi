@@ -148,7 +148,7 @@ class ReportViews(viewsets.ViewSet):
             total=Count('route_id__dest')).filter(schedule_date__year=search_date.year)
 
         top_route_month=Schedule.objects.values('route_id__dest').annotate(
-            total=Count('route_id__dest')).filter(schedule_date__month=search_date.month)
+            total=Count('route_id__dest')).filter(schedule_date__month=search_date.month, created_at__year=search_date.year)
         balance_year=total_income_year-total_expense_year
         balance_month = total_income_month - total_expense_month
         year_position={"total_income_year":total_income_year,"total_expense_year":total_expense_year, "profit":
@@ -160,6 +160,50 @@ class ReportViews(viewsets.ViewSet):
                'data':data}
         return Response({"message": "dashboard", "result": res}, status=status.HTTP_200_OK)
 
+
+    @extend_schema(parameters=[sdperm])
+    @action(detail=False, methods=['GET'])
+    def insight_dashboard_stat(self, request, *args, **kwargs):
+        booking_data=[]
+        start_d=date.today().strftime('%Y-%m-01')
+
+        s_date=request.query_params.get('search_date', start_d)
+        search_date=datetime.datetime.strptime(s_date, "%Y-%m-%d").date()
+        total_booking_month=  Booking.objects.filter(created_at__year=search_date.year,
+                                                created_at__month=search_date.month).count()
+
+        total_income_month = Transaction.objects.filter(created_at__year=search_date.year,created_at__month=search_date.month,
+                                                        trans_method='Credit').aggregate(Sum('amount_paid'))['amount_paid__sum']
+        total_expense_month = Transaction.objects.filter(created_at__year=search_date.year,created_at__month=search_date.month,
+                                                         trans_method='Expense').aggregate(Sum('amount_paid'))['amount_paid__sum']
+
+        if total_income_month==None:
+            total_income_month =0
+        if total_expense_month==None:
+            total_expense_month =0
+
+        for i in ['01', '02','03', '04','05','06','07','08','09', '10','11','12']:
+            total=Booking.objects.filter(created_at__month=i,
+                                             created_at__year=search_date.year).aggregate(Sum(
+                'amount_paid'))['amount_paid__sum']
+
+            if total==None:
+                total=0.0
+
+            ress = {"month": i, "income_total": total}
+            booking_data.append(ress)
+
+        top_route_year=Booking.objects.values('schedule_id__route_id__name').annotate(Sum('amount_paid')).filter(
+            created_at__year=search_date.year,created_at__month=search_date.month )
+
+        balance_month = total_income_month - total_expense_month
+        tranx=Transaction.objects.values('payment_method').annotate(
+            total=Count('payment_method')).filter(created_at__month=search_date.month, created_at__year=search_date.year)
+        month_position={"total_booking": total_booking_month,"total_income":total_income_month,"total_expense":total_expense_month, "profit":
+                       balance_month}
+        res = {"financial_position": month_position, "top_routes": top_route_year,
+               'booking_data':booking_data, "payment_methods":tranx}
+        return Response({"message": "dashboard", "result": res}, status=status.HTTP_200_OK)
 
 
 class AuditViews(viewsets.ViewSet):

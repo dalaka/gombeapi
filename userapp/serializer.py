@@ -114,8 +114,9 @@ class PasswordResetSerializer(serializers.Serializer):
             site_domain = get_current_site(request).domain
 
             relative_link=reverse('password-reset-confirm', kwargs={'uidb64':uidb64, 'token':token})
-            abslink = f"http://{site_domain}{relative_link}"
-            email_body=f"Hi use the link below to reset your password \n {abslink}"
+            link=f"https://gombeline-sigma.vercel.app/password-reset-confirm/{uidb64}/{token}"
+
+            email_body=f"Hi use the link below to reset your password \n {link}"
             data ={
                 'email_body':email_body,
                 'email_subject': "Reset Your Password",
@@ -143,7 +144,6 @@ class SetNewPasswordSerializer(serializers.Serializer):
         confirm_password = attrs.get('confirm_password')
         user_id = force_str(urlsafe_base64_decode(uidb64))
         user=User.objects.get(id=user_id)
-        request = self.context.get('request')
         ck_token=PasswordResetTokenGenerator().check_token(user, token)
 
         if  not ck_token:
@@ -154,7 +154,7 @@ class SetNewPasswordSerializer(serializers.Serializer):
             user.set_password(password)
             user.save()
             desc = f"This {user.username} has changed password"
-            audit_log(name="user", desc=desc, user=request.user)
+            audit_log(name="user", desc=desc,user=user)
             return user
 
 

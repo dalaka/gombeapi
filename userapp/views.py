@@ -30,11 +30,18 @@ class RegisterUserView(GenericAPIView):
         email=user_data.get('email')
 
         usr=User.objects.filter(email=email).exists()
-        print(usr)
         if usr:
-            return Response(response_info(status=status.HTTP_400_BAD_REQUEST, msg="email already exist", data=[]))
-
-
+            n= User.objects.get(email=email)
+            if n.is_verified ==True:
+                return Response(response_info(status=status.HTTP_400_BAD_REQUEST,
+                                              msg="a user already is active with this email", data=[]))
+            else:
+                send_code_to_user(email)
+                return Response(
+                    response_info(status=status.HTTP_200_OK, \
+                                  msg=f"Hi {n.first_name}  a passcode has been sent to your email to verify your account", \
+                                  data=[]
+                                  ))
 
         serializer = self.serializer_class(data=user_data)
 
@@ -98,7 +105,7 @@ class ResetPwdView(GenericAPIView):
 class SetNewPasswordView(GenericAPIView):
     serializer_class = SetNewPasswordSerializer
     def patch(self, request):
-        serializer = self.serializer_class(data=request.data,context={'request':request} )
+        serializer = self.serializer_class(data=request.data )
         serializer.is_valid(raise_exception=True)
         return Response(response_info(status=status.HTTP_200_OK, msg="Password reset successfully", data=[]))
 

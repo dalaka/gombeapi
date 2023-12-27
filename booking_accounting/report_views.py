@@ -11,7 +11,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from booking_accounting.models import Transaction, Booking, Report, CurrentBalance, AuditLog
+from booking_accounting.loading_serializer import LoadingSerializer
+from booking_accounting.models import Transaction, Booking, Report, CurrentBalance, AuditLog, LoadingBooking
 from booking_accounting.serializer import transction
 from booking_accounting.trnx_serializer import InvoiceSerializer, InvoicePaymentSerializer, TransactionSerializer, \
     ReportSerializer, BookingReportSerializer, VehicleRepairReportSerializer, BalanceSerializer, AuditLogSerializer
@@ -39,7 +40,7 @@ class ReportViews(viewsets.ViewSet):
         s = f"{s_date} 00:00:00"
         e = f"{e_date} 23:59:59"
         if report_type == 'booking':
-            bk_obj = Booking.objects.filter(created_at__range=[s,e])
+            bk_obj = Booking.objects.filter(created_at__range=[s,e]).order_by('-created_at')
 
             total = bk_obj.aggregate(Sum('amount_paid'))['amount_paid__sum']
             if total == None:
@@ -51,10 +52,9 @@ class ReportViews(viewsets.ViewSet):
             return Response(response_info(status=status.HTTP_200_OK, msg="report generated successfully",
                                           data=res.data))
         if report_type == 'repair':
-            print(e)
-            print(s)
-            bk_obj = VehicleRepair.objects.filter(created_at__range=[s,e])
-            print(bk_obj)
+
+            bk_obj = VehicleRepair.objects.filter(created_at__range=[s,e]).order_by('-created_at')
+
             total = bk_obj.aggregate(Sum('repair_cost'))['repair_cost__sum']
             if total == None:
                 total =0.0
@@ -64,12 +64,28 @@ class ReportViews(viewsets.ViewSet):
             res = self.serializer_class(report_obj)
             return Response(response_info(status=status.HTTP_200_OK, msg="report generated successfully",
                                           data=res.data))
+        if report_type == 'loading':
 
+            bk_obj = LoadingBooking.objects.filter(created_at__range=[s,e]).order_by('-created_at')
+
+            total = bk_obj.aggregate(Sum('repair_cost'))['repair_cost__sum']
+            if total == None:
+                total =0.0
+
+            data=LoadingSerializer(bk_obj, many=True)
+            report_obj=create_report(s=s,e=e,report_type=report_type, total=total,data=data.data)
+            res = self.serializer_class(report_obj)
+            return Response(response_info(status=status.HTTP_200_OK, msg="report generated successfully",
+                                          data=res.data))
         return Response(response_info(status=status.HTTP_401_UNAUTHORIZED, msg="Report can not be created", data=[]))
 
+    report = OpenApiParameter(name='report_type', description='Report Type', required=False, type=str,
+                               location=OpenApiParameter.QUERY)
+    @extend_schema(parameters=[report])
     def list(self, request):
-
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+        report_type=request.query_params.get('report_type','booking')
+        report_query=Report.objects.filter(report_type=report_type).order_by('-created_at')
+        res = custom_paginator.paginate_queryset(report_query, request)
 
         serializer=self.serializer_class(res, many=True)
 

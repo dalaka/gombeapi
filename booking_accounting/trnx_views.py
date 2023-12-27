@@ -111,7 +111,7 @@ class TransactionViews(viewsets.ViewSet):
 
         s = f"{s_date} 00:00:00"
         e = f"{e_date} 23:59:59"
-        trn=Transaction.objects.filter(created_at__range=[s,e])
+        trn=Transaction.objects.filter(created_at__range=[s,e]).order_by('-created_at')
         res = custom_paginator.paginate_queryset(trn, request)
 
         serializer=self.serializer_class(res, many=True)

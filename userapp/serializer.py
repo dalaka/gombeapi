@@ -1,3 +1,4 @@
+import django_filters
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login, Group
 from django.contrib.auth.password_validation import validate_password
@@ -203,6 +204,19 @@ class LogoutUserSerializer(serializers.Serializer):
             token.blacklist()
         except TokenError:
             return self.fail('bad_token')
+
+
+
+class UserFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    department = django_filters.CharFilter(field_name='department__name', lookup_expr="exact")
+    office = django_filters.NumberFilter(field_name='location_id', lookup_expr="exact")
+
+    class Meta:
+        model = User
+        fields = ['email', 'created_at', 'phone']
+
+
 
 class UserSerializer(serializers.ModelSerializer):
     groups= GroupSerializer(many=True,read_only=True)

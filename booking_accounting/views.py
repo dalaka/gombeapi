@@ -1,8 +1,9 @@
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.shortcuts import render
 
 # Create your views here.
 from django.utils.timezone import now
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -11,16 +12,21 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from booking_accounting.loading_serializer import LoadingSerializer, LoadingingPaymentSerializer
+from booking_accounting.loading_serializer import LoadingSerializer, LoadingingPaymentSerializer, LoadingFilter
 from booking_accounting.models import Booking, LoadingBooking
 from booking_accounting.serializer import BookingSerializer, BookingChangeSerializer, BookingPaymentSerializer, \
-    transction
+    transction, BookingFilter
 from booking_accounting.util import reset_bus_util, audit_log
 from traffic.models import Schedule
 from traffic.serializer import ScheduleSerializer
 from userapp.permission_decorator import response_info
 
 custom_paginator=PageNumberPagination()
+
+
+
+
+
 class BookingViews(viewsets.ViewSet):
     serializer_class = BookingSerializer
     permission_classes =  (IsAuthenticated,)
@@ -50,7 +56,15 @@ class BookingViews(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+        search = request.query_params.get('search', None)
+        queryset = self.queryset
+        if search !=None:
+            queryset = queryset.filter(Q(booking_code__exact=search)| Q(destination__exact=search))
+
+        filterset = BookingFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res = custom_paginator.paginate_queryset(queryset, request)
 
         serializer=BookingSerializer(res, many=True)
 
@@ -58,6 +72,9 @@ class BookingViews(viewsets.ViewSet):
 
 
         return custom_paginator.get_paginated_response(serializer.data)
+
+
+
 
     schperam=OpenApiParameter(name='schedule_date',description='Schedule date',required=False,type=str,location=OpenApiParameter.QUERY)
     sourceeram=OpenApiParameter(name='source',description='Pick Up State',required=False,type=str,location=OpenApiParameter.QUERY)
@@ -208,6 +225,7 @@ class LoadingViews(viewsets.ViewSet):
     permission_classes =  (IsAuthenticated,)
     queryset = LoadingBooking.objects.all().order_by('-created_at')
 
+
     def create(self, request):
         serializer = LoadingSerializer(data=request.data,context={'request':request})
         if serializer.is_valid(raise_exception=True):
@@ -216,8 +234,15 @@ class LoadingViews(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
+        search = request.query_params.get('search', None)
+        queryset = self.queryset
+        if search !=None:
+            queryset = queryset.filter(Q(loading_code__exact=search)| Q(plate_number__contains=search))
 
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+        filterset = LoadingFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res = custom_paginator.paginate_queryset(queryset, request)
 
         serializer=LoadingSerializer(res, many=True)
 

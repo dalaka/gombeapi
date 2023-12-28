@@ -84,10 +84,6 @@ class ScheduleViews(viewsets.ViewSet):
         res = custom_paginator.paginate_queryset(self.queryset, request)
 
         serializer=ScheduleSerializer(res, many=True)
-
-
-
-
         return custom_paginator.get_paginated_response(serializer.data)
 
 

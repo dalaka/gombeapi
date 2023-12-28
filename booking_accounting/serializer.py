@@ -1,3 +1,4 @@
+import django_filters
 from django.utils.timezone import now
 from rest_framework import serializers
 
@@ -125,6 +126,20 @@ class BookingChangeSerializer(serializers.ModelSerializer):
         desc=f"{n} with booking code {instance.booking_code} "
         audit_log(name="Booking", desc=desc, user=user)
         return instance
+class BookingFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
+    schedule_date = django_filters.DateFilter(field_name='schedule__date', lookup_expr="exact")
+    vehicle_id = django_filters.NumberFilter(field_name='schedule_id__vehicle_id_id' , lookup_expr="exact")
+    driver_id = django_filters.NumberFilter(field_name='schedule_id__driver_id_id' , lookup_expr="exact")
+
+    route_id = django_filters.NumberFilter(field_name='schedule_id__route_id_id', lookup_expr="exact")
+
+    class Meta:
+        model = Booking
+        fields = ['created_at', 'schedule_date', 'created_by']
+
+
 
 
 class BookingSerializer(serializers.ModelSerializer):

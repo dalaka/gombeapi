@@ -1,9 +1,18 @@
+import django_filters
 from django.utils.timezone import now
 from rest_framework import serializers
 
 from booking_accounting.models import LoadingBooking
 from traffic.serializer import UserTrafficSerializer
 from userapp.utils import generate_activation_code
+
+class LoadingFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
+    class Meta:
+        model = LoadingBooking
+        fields = ['plate_number', 'created_at', 'payment_method', 'created_by']
+
 
 
 class LoadingSerializer(serializers.ModelSerializer):

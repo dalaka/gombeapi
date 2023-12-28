@@ -1,3 +1,4 @@
+import django_filters
 from django.utils.timezone import now
 from rest_framework import serializers
 
@@ -73,6 +74,12 @@ class ItemsSerializer(serializers.ModelSerializer):
         instance.modified_at=now()
         instance.save()
         return instance
+class MaintenanceFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
+    class Meta:
+        model = Maintenance
+        fields = [ 'created_at', 'created_by']
 
 class MaintenanceSerializer(serializers.ModelSerializer):
     maintenance_type = ItemsSerializer(many=True, read_only=True)
@@ -130,6 +137,14 @@ class MaintenanceSerializer(serializers.ModelSerializer):
             instance.maintenance_type.add(i)
         instance.save()
         return instance
+class RepairFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
+    class Meta:
+        model = VehicleRepair
+        fields = [ 'created_at', 'created_by']
+
+
 
 class VehicleRepairSerializer(serializers.ModelSerializer):
     created_by = UserDetailSerializer(read_only=True)
@@ -176,6 +191,13 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
         instance.modified_at=now()
         instance.save()
         return instance
+class VehicleFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+
+    class Meta:
+        model = Vehicle
+        fields = ['created_at', 'vehicle_make', 'vehicle_model', 'vehicle_condition']
+
 
 class VehicleSerializer(serializers.ModelSerializer):
     created_by = UserDetailSerializer(read_only=True)
@@ -220,6 +242,13 @@ class VehicleSerializer(serializers.ModelSerializer):
         instance.modified_at=now()
         instance.save()
         return instance
+class DriverFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+
+    class Meta:
+        model = Driver
+        fields = ['created_at']
+
 
 class DriverSerializer(serializers.ModelSerializer):
     created_by = UserDetailSerializer(read_only=True)

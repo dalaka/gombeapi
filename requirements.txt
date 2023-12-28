@@ -1,5 +1,6 @@
 Django
 dj-database-url
+django-filter
 Pillow
 django-cors-headers
 django-environ

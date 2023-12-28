@@ -1,6 +1,7 @@
 import pyotp
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db.models import Q
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import now
@@ -16,7 +17,7 @@ from userapp.models import User, Location, Department, OTP
 from userapp.permission_decorator import has_permission, response_info
 from userapp.serializer import GroupSerializer, UserSerializer, createuser, LocationSerializer, DepartmentSerializer, \
     ChangePasswordSerializer, UserRegisterSerializer, VerifyOTPSerializer, LoginSerializer, PasswordResetSerializer, \
-    SetNewPasswordSerializer, LogoutUserSerializer
+    SetNewPasswordSerializer, LogoutUserSerializer, UserFilter
 from userapp.utils import send_code_to_user
 
 paginator = PageNumberPagination()
@@ -155,11 +156,31 @@ class LogoutView(GenericAPIView):
 class UserView(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserSerializer
+    queryset = User.objects.all().order_by('created_at')
 
 
-    def get_queryset(self):
-        obj = User.objects.all().order_by('created_at')
-        return obj
+
+
+
+    def list(self, request):
+        search = request.query_params.get('search', None)
+        queryset = self.queryset
+        if search !=None:
+            queryset = queryset.filter(Q(email__exact=search)| Q(phone__exact=search)| Q(first_name=search))
+
+        filterset = UserFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res = paginator.paginate_queryset(queryset, request)
+
+        serializer=UserSerializer(res, many=True)
+
+
+
+
+        return paginator.get_paginated_response(serializer.data)
+
+
 
     def create(self, request, *args, **kwargs):
         " Create User endpoint"

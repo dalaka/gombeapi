@@ -12,7 +12,8 @@ from rest_framework.response import Response
 
 from userapp.permission_decorator import response_info
 from vehicle_driver_app.models import Vehicle, Maintenance, VehicleRepair
-from vehicle_driver_app.serializer import VehicleSerializer, MaintenanceSerializer, VehicleRepairSerializer
+from vehicle_driver_app.serializer import VehicleSerializer, MaintenanceSerializer, VehicleRepairSerializer, \
+    VehicleFilter, MaintenanceFilter, RepairFilter
 
 custom_paginator=PageNumberPagination()
 
@@ -31,14 +32,19 @@ class VehicleViews(viewsets.ViewSet):
 
     vperam=OpenApiParameter(name='search',description='search vehicle',required=False,type=str,location=OpenApiParameter.QUERY)
     @extend_schema(parameters=[vperam])
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
         search = request.query_params.get('search', None)
-        if search != None:
-            get_allv = Vehicle.objects.filter(Q(custom_naming__icontains=search) | Q(reg_number__icontains=search))
-        else:
-            get_allv = self.queryset
-        res = custom_paginator.paginate_queryset(get_allv, request)
+        queryset = self.queryset
+        if search !=None:
+            queryset = queryset.filter(Q(custom_naming__exact=search)| Q(reg_number__exact=search))
+
+        filterset = VehicleFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res =custom_paginator.paginate_queryset(queryset, request)
+
         serializer=VehicleSerializer(res, many=True)
+
         return custom_paginator.get_paginated_response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -86,10 +92,19 @@ class MaintenanceViews(viewsets.ViewSet):
         return Response(response_info(status=status.HTTP_400_BAD_REQUEST, msg="error", data=serializer.data))
 
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
+        search = request.query_params.get('search', None)
+        queryset = self.queryset
+        if search !=None:
+            queryset = queryset.filter(Q(maintenance_code_exact=search))
 
-        res = custom_paginator.paginate_queryset(self.queryset, request)
+        filterset = MaintenanceFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res =custom_paginator.paginate_queryset(queryset, request)
+
         serializer=MaintenanceSerializer(res, many=True)
+
         return custom_paginator.get_paginated_response(serializer.data)
 
     userperam=OpenApiParameter(name='vehicle_id',description='vehicle id',required=True,type=int,location=OpenApiParameter.QUERY)
@@ -133,10 +148,19 @@ class RepairViews(viewsets.ViewSet):
             return Response(response_info(status=status.HTTP_201_CREATED, msg="repair detail", data=serializer.data))
         return Response(response_info(status=status.HTTP_400_BAD_REQUEST, msg="error", data=serializer.data))
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
+        search = request.query_params.get('search', None)
+        queryset = self.queryset
+        if search != None:
+            queryset = queryset.filter(Q(repair_code=search))
 
-        res = custom_paginator.paginate_queryset(self.queryset, request)
-        serializer=self.serializer_class(res, many=True)
+        filterset = RepairFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res = custom_paginator.paginate_queryset(queryset, request)
+
+        serializer = VehicleRepairSerializer(res, many=True)
+
         return custom_paginator.get_paginated_response(serializer.data)
 
     userperam=OpenApiParameter(name='vehicle_id',description='vehicle id',required=True,type=int,location=OpenApiParameter.QUERY)

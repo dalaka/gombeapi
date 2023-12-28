@@ -251,7 +251,30 @@ class UserView(viewsets.ModelViewSet):
                 res.save()
                 return Response(response_info(status=status.HTTP_200_OK,msg= "user has been activated successfully", data=[]))
         else:
+
+
+
             return Response(response_info(status=status.HTTP_404_NOT_FOUND,msg= "user not found", data=[]))
+
+class ProfileView(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
+    queryset = User.objects.all().order_by('created_at')
+
+
+    def update(self, request, pk=None):
+        """Update user endpoint"""
+        user_object = get_object_or_404(self.queryset, pk=pk)
+        user_object.email = request.data.get('email', user_object.email)
+        user_object.first_name = request.data.get("first_name", user_object.first_name)
+        user_object.last_name = request.data.get("last_name",user_object.last_name)
+        user_object.is_active =request.data.get("is_active",user_object.is_active)
+        user_object.phone =request.data.get("phone",user_object.phone)
+        user_object.modified_at = now()
+        user_object.save()
+
+        serializer = UserSerializer(user_object)
+        return Response(response_info(status=status.HTTP_200_OK,msg="updated successfully",data=serializer.data))
 
 class LocationView(viewsets.ModelViewSet):
     serializer_class = LocationSerializer

@@ -1,3 +1,4 @@
+import django_filters
 from django.utils.timezone import now
 from rest_framework import serializers
 
@@ -68,6 +69,12 @@ class BalanceSerializer(serializers.ModelSerializer):
 
 
 
+class InvoiceFilter(django_filters.FilterSet):
+    created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
+    class Meta:
+        model = Invoice
+        fields = ['created_at', 'is_approved', 'created_by']
 
 class InvoiceSerializer(serializers.ModelSerializer):
 

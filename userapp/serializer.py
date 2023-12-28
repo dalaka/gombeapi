@@ -209,8 +209,8 @@ class LogoutUserSerializer(serializers.Serializer):
 
 class UserFilter(django_filters.FilterSet):
     created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
-    department = django_filters.CharFilter(field_name='department__name', lookup_expr="exact")
-    office = django_filters.NumberFilter(field_name='location_id', lookup_expr="exact")
+    department_name = django_filters.CharFilter(field_name='department__name', lookup_expr="exact")
+    office_id = django_filters.NumberFilter(field_name='location_id', lookup_expr="exact")
 
     class Meta:
         model = User

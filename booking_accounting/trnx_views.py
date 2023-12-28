@@ -1,7 +1,7 @@
 import datetime
 from datetime import date
 import pandas as pd
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.utils.timezone import now
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
@@ -13,7 +13,8 @@ from rest_framework.response import Response
 
 from booking_accounting.models import Transaction, Booking
 from booking_accounting.serializer import transction
-from booking_accounting.trnx_serializer import InvoiceSerializer, InvoicePaymentSerializer, TransactionSerializer
+from booking_accounting.trnx_serializer import InvoiceSerializer, InvoicePaymentSerializer, TransactionSerializer, \
+    InvoiceFilter
 from booking_accounting.util import last_thirtydays
 from userapp.permission_decorator import response_info
 from vehicle_driver_app.models import Invoice, VehicleRepair
@@ -32,18 +33,22 @@ class InvoiceViews(viewsets.ViewSet):
             return Response(response_info(status=status.HTTP_201_CREATED, msg="invoice created successfully", data=serializer.data))
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
     def list(self, request):
+        search = request.query_params.get('search', None)
+        queryset = self.queryset
+        if search !=None:
+            queryset = queryset.filter(Q(invoiceId=search))
+        filterset = InvoiceFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res = custom_paginator.paginate_queryset(queryset, request)
 
-        res = custom_paginator.paginate_queryset(self.queryset, request)
-
-        serializer=self.serializer_class(res, many=True)
+        serializer=InvoiceSerializer(res, many=True)
 
 
 
         return custom_paginator.get_paginated_response(serializer.data)
-
-
-
 
     def retrieve(self, request, pk=None):
         vehicle = get_object_or_404(self.queryset, pk=pk)
@@ -70,6 +75,8 @@ class InvoicePaymentViews(viewsets.ViewSet):
     serializer_class = InvoicePaymentSerializer
     permission_classes = (IsAuthenticated,)
     queryset = Invoice.objects.all().order_by('created_at')
+
+
 
 
     def update(self, request, pk=None):

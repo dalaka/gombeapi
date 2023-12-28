@@ -193,10 +193,11 @@ class VehicleRepairSerializer(serializers.ModelSerializer):
         return instance
 class VehicleFilter(django_filters.FilterSet):
     created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
 
     class Meta:
         model = Vehicle
-        fields = ['created_at', 'vehicle_make', 'vehicle_model', 'vehicle_condition']
+        fields = ['created_at','created_by', 'vehicle_make', 'vehicle_model', 'vehicle_condition']
 
 
 class VehicleSerializer(serializers.ModelSerializer):
@@ -244,10 +245,11 @@ class VehicleSerializer(serializers.ModelSerializer):
         return instance
 class DriverFilter(django_filters.FilterSet):
     created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
+    created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
 
     class Meta:
         model = Driver
-        fields = ['created_at']
+        fields = ['created_at','created_by']
 
 
 class DriverSerializer(serializers.ModelSerializer):

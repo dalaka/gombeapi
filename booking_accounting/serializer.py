@@ -129,7 +129,7 @@ class BookingChangeSerializer(serializers.ModelSerializer):
 class BookingFilter(django_filters.FilterSet):
     created_at = django_filters.DateFilter(field_name='created_at__date', lookup_expr="exact")
     created_by = django_filters.NumberFilter(field_name='created_by__id', lookup_expr="exact")
-    schedule_date = django_filters.DateFilter(field_name='schedule__date', lookup_expr="exact")
+    booking_date = django_filters.DateFilter(field_name='booking_date', lookup_expr="exact")
     vehicle_id = django_filters.NumberFilter(field_name='schedule_id__vehicle_id_id' , lookup_expr="exact")
     driver_id = django_filters.NumberFilter(field_name='schedule_id__driver_id_id' , lookup_expr="exact")
 
@@ -137,7 +137,7 @@ class BookingFilter(django_filters.FilterSet):
 
     class Meta:
         model = Booking
-        fields = ['created_at', 'schedule_date', 'created_by']
+        fields = ['created_at', 'booking_date', 'created_by']
 
 
 

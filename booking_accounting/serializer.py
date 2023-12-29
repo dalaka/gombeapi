@@ -189,7 +189,6 @@ class BookingSerializer(serializers.ModelSerializer):
         sch_obj.seats_available = no - 1
         sch_obj.save()
 
-        audit_log()
 
         return booking
 

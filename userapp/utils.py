@@ -61,7 +61,7 @@ def send_code_to_user(email):
     Subject = "One time passcode for email verification"
     # Generate OTP
     otp_secret = pyotp.random_base32()
-    otp = pyotp.TOTP(otp_secret,interval=80000)
+    otp = pyotp.TOTP(otp_secret,interval=300)
     otp_code = otp.now()
     user = User.objects.get(email=email)
     current_site = "Gombe Transport System"

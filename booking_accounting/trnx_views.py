@@ -75,10 +75,6 @@ class InvoicePaymentViews(viewsets.ViewSet):
     serializer_class = InvoicePaymentSerializer
     permission_classes = (IsAuthenticated,)
     queryset = Invoice.objects.all().order_by('created_at')
-
-
-
-
     def update(self, request, pk=None):
 
         bk_obj=get_object_or_404(self.queryset, pk=pk)

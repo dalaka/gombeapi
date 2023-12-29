@@ -69,7 +69,7 @@ class VerifyEmailView(GenericAPIView):
             user_code_obj = OTP.objects.get(email=email)
             user = User.objects.get(id=user_code_obj.user.id)
 
-            otp = pyotp.TOTP(user_code_obj.otp_secret,interval=300)
+            otp = pyotp.TOTP(user_code_obj.otp_secret,interval=1000)
             otp_status = otp.verify(otp_code)
             print(otp_status)
             if otp_status:

@@ -11,7 +11,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from booking_accounting.models import Transaction, Booking
+from booking_accounting.models import Transaction, Booking, CurrentBalance
 from booking_accounting.serializer import transction
 from booking_accounting.trnx_serializer import InvoiceSerializer, InvoicePaymentSerializer, TransactionSerializer, \
     InvoiceFilter
@@ -34,9 +34,28 @@ class InvoiceViews(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+    @action(detail=False, methods=['GET'])
+    def chairman_invoice_list(self, request):
+        search = request.query_params.get('search', None)
+
+        queryset = Invoice.objects.filter(invoice_total__gt=100000).order_by('-created_at')
+        if search !=None:
+            queryset = queryset.filter(Q(invoiceId=search))
+        filterset = InvoiceFilter(request.GET, queryset=queryset)
+        if filterset.is_valid():
+            queryset = filterset.qs
+        res = custom_paginator.paginate_queryset(queryset, request)
+
+        serializer=InvoiceSerializer(res, many=True)
+
+
+
+        return custom_paginator.get_paginated_response(serializer.data)
+
     def list(self, request):
         search = request.query_params.get('search', None)
-        queryset = self.queryset
+
+        queryset = Invoice.objects.filter(invoice_total__lte=100000).order_by('-created_at')
         if search !=None:
             queryset = queryset.filter(Q(invoiceId=search))
         filterset = InvoiceFilter(request.GET, queryset=queryset)
@@ -76,11 +95,15 @@ class InvoicePaymentViews(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Invoice.objects.all().order_by('created_at')
     def update(self, request, pk=None):
-
+        balance=CurrentBalance.objects.get(id=1)
         bk_obj=get_object_or_404(self.queryset, pk=pk)
-
+        amt =request.data.get('amount')
+        if amt > balance.current_total_income:
+            return Response(response_info(status=status.HTTP_401_UNAUTHORIZED, msg="No enough credit to settle this invoice", data=[]))
         if bk_obj.invoice_status =='Paid':
             return Response(response_info(status=status.HTTP_401_UNAUTHORIZED, msg="This invoice is paid", data=[]))
+
+
         else:
             bk_obj.amount_paid += request.data.get('amount')
             bk_obj.payment_method = request.data.get('payment_method')

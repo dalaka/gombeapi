@@ -16,7 +16,7 @@ def upload_to(instance, filename):
 class Invoice(models.Model):
     invoiceId = models.CharField(max_length=20)
     purpose = models.CharField(max_length=50)
-    description = models.CharField(max_length=50,null=True)
+    description = models.CharField(max_length=200,null=True)
     receiver_name = models.CharField(max_length=50, null=True)
     payment_method = models.CharField(max_length=50, null=True)
     invoice_total = models.FloatField(default=0.0)
@@ -101,7 +101,7 @@ class Driver(models.Model):
 
     @property
     def is_license_active(self):
-        if date.today() < self.expiry_date:
+        if self.expiry_date < date.today():
             return True
         else:
             return False

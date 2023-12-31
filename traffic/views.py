@@ -70,7 +70,7 @@ class RouteViews(viewsets.ViewSet):
 class ScheduleViews(viewsets.ViewSet):
     serializer_class = ScheduleSerializer
     permission_classes =  (IsAuthenticated,)
-    queryset = Schedule.objects.all().order_by('created_at')
+    queryset = Schedule.objects.all().order_by('-created_at')
 
     def create(self, request):
         serializer = ScheduleSerializer(data=request.data,context={'request':request})
@@ -94,7 +94,7 @@ class ScheduleViews(viewsets.ViewSet):
         schedule_date = request.query_params.get('schedule_date')
         if schedule_date !=None:
             s_query=Schedule.objects.filter(Q(route_id__source__icontains='Gombe') &
-                                            Q(schedule_date__exact=schedule_date) ).order_by('created_at')
+                                            Q(schedule_date__exact=schedule_date) ).order_by('-created_at')
 
         else:
             s_query=Schedule.objects.filter(route_id__source='Gombe').order_by('created_at')
@@ -114,7 +114,7 @@ class ScheduleViews(viewsets.ViewSet):
         schedule_date = request.query_params.get('schedule_date')
         if schedule_date != None:
             s_query = Schedule.objects.filter(
-                Q(route_id__dest__icontains='Gombe') & Q(schedule_date__exact=schedule_date)).order_by('created_at')
+                Q(route_id__dest__icontains='Gombe') & Q(schedule_date__exact=schedule_date)).order_by('-created_at')
 
         else:
             s_query = Schedule.objects.filter(route_id__dest='Gombe').order_by('created_at')
@@ -143,7 +143,7 @@ class ScheduleViews(viewsets.ViewSet):
         stu=Schedule.objects.get(pk=id)
         d=stu.name
         stu.delete()
-        desc=f"This schedule {d.booking_code} has been deleted"
+        desc=f"This schedule {d} has been deleted"
         audit_log(name="Schedule", desc=desc, user=request.user)
         return Response(response_info(status=status.HTTP_200_OK, msg='schedule delete successfully',data=[]))
 

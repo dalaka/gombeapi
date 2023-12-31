@@ -82,7 +82,7 @@ class VehicleViews(viewsets.ViewSet):
 class MaintenanceViews(viewsets.ViewSet):
     serializer_class = MaintenanceSerializer
     permission_classes =  (IsAuthenticated,)
-    queryset = Maintenance.objects.all().order_by('created_at')
+    queryset = Maintenance.objects.all().order_by('-created_at')
 
     def create(self, request):
         serializer = MaintenanceSerializer(data=request.data,context={'request':request})
@@ -139,7 +139,7 @@ class MaintenanceViews(viewsets.ViewSet):
 class RepairViews(viewsets.ViewSet):
     serializer_class = VehicleRepairSerializer
     permission_classes =  (IsAuthenticated,)
-    queryset = VehicleRepair.objects.all().order_by('created_at')
+    queryset = VehicleRepair.objects.all().order_by('-created_at')
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data,context={'request':request})
